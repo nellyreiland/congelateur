@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Congélo V15 (Impression Table)</title>
+    <title>Mon Congélo V16 (Suppression Rapide)</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0288d1">
@@ -214,6 +214,7 @@
             display: flex;
             gap: 5px;
             flex-wrap: nowrap;
+            align-items: center; /* Alignement vertical des actions */
         }
         .table-actions .qty-btn {
             width: 20px; 
@@ -276,7 +277,7 @@
         }
         #history-message { font-size: 0.9rem; }
         
-        /* --- STYLES D'IMPRESSION (NOUVEAU) --- */
+        /* --- STYLES D'IMPRESSION --- */
         @media print {
             /* Force l'apparence pour l'impression */
             body {
@@ -298,28 +299,23 @@
             .add-form, 
             #history-bar,
             .qty-btn, /* Cache les boutons +/- */
-            .table-actions .tool-btn, /* Cache les boutons Recette, Éditer, Envoyer */
-            div[style*="text-align:center; margin-top:30px"] /* Cache les liens Sauvegarder/Restaurer */
+            .table-actions .tool-btn, /* Cache tous les boutons d'action spécifiques */
+            div[style*="text-align:center; margin-top:30px"] 
              {
                 display: none !important;
             }
             
-            /* Sauf le bouton Imprimer (à cacher via JS pour les puristes, mais on peut le cacher en CSS) */
-            #printBtn {
-                display: none !important;
-            }
-
             /* Assurer que le conteneur de la liste et le tableau sont visibles et bien formatés */
             #list-container {
-                padding: 10px; /* Ajoute un peu d'espace autour du tableau */
+                padding: 10px; 
                 margin: 0;
-                overflow-x: visible; /* Ne pas défiler, utiliser toute la largeur */
+                overflow-x: visible; 
             }
 
             #inventory-table {
                 min-width: 100%;
                 box-shadow: none;
-                border: 1px solid #000; /* Ajoute une bordure extérieure pour la table */
+                border: 1px solid #000; 
                 font-size: 10pt;
             }
             
@@ -327,7 +323,7 @@
                 padding: 5px;
                 border-bottom: 1px solid #ddd;
                 border-right: 1px solid #ddd;
-                white-space: normal; /* Permet aux noms de s'enrouler */
+                white-space: normal; 
             }
             
             #inventory-table th {
@@ -477,11 +473,12 @@
 
 <script>
     // --- Initialisation des Données ---
-    let inventory = JSON.parse(localStorage.getItem('freezerDataV13')) || []; 
-    let shoppingList = JSON.parse(localStorage.getItem('shoppingDataV13')) || [];
-    let historyStack = JSON.parse(localStorage.getItem('historyDataV13')) || []; 
+    // Note: Passage à V16 pour les sauvegardes futures
+    let inventory = JSON.parse(localStorage.getItem('freezerDataV15') || localStorage.getItem('freezerDataV13')) || []; 
+    let shoppingList = JSON.parse(localStorage.getItem('shoppingDataV15') || localStorage.getItem('shoppingDataV13')) || [];
+    let historyStack = JSON.parse(localStorage.getItem('historyDataV15') || localStorage.getItem('historyDataV13')) || []; 
     
-    let currentView = localStorage.getItem('currentViewV13') || 'freezer';
+    let currentView = localStorage.getItem('currentViewV15') || 'freezer';
     let editingId = null;
     let alertFilterActive = false;
     let autocompleteIndex = -1;
@@ -589,7 +586,7 @@
         renderStats();
     }
 
-    // --- Saisie Vocale ---
+    // --- Saisie Vocale (unchanged) ---
     let voiceRecognition;
     if (window.SpeechRecognition || window.webkitSpeechRecognition) {
         voiceRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -678,7 +675,7 @@
         selectAutocomplete(name); 
     }
     
-    // --- Mode Lecture ---
+    // --- Mode Lecture (unchanged) ---
     function toggleReadMode() {
         readModeActive = !readModeActive;
         const btn = document.getElementById('readModeToggle');
@@ -691,15 +688,15 @@
 
     // --- Sauvegarde ---
     function save() {
-        localStorage.setItem('freezerDataV13', JSON.stringify(inventory));
-        localStorage.setItem('shoppingDataV13', JSON.stringify(shoppingList));
-        localStorage.setItem('historyDataV13', JSON.stringify(historyStack.slice(0, 5))); 
-        localStorage.setItem('currentViewV13', currentView);
+        localStorage.setItem('freezerDataV15', JSON.stringify(inventory));
+        localStorage.setItem('shoppingDataV15', JSON.stringify(shoppingList));
+        localStorage.setItem('historyDataV15', JSON.stringify(historyStack.slice(0, 5))); 
+        localStorage.setItem('currentViewV15', currentView);
         renderList();
         renderStats();
     }
     
-    // --- Historique ---
+    // --- Historique (unchanged) ---
     function pushToHistory(item, action = 'deleted') {
         historyStack.unshift({ ...item, action, timestamp: Date.now(), view: currentView });
         save();
@@ -733,7 +730,7 @@
         showHistoryBar();
     }
 
-    // --- Saisie (Autocomplétion) ---
+    // --- Saisie (Autocomplétion) (unchanged) ---
     function getUniqueNames() {
         const names = new Set();
         inventory.forEach(item => names.add(item.name));
@@ -746,7 +743,7 @@
             return {
                 category: lastItem.category,
                 drawer: lastItem.drawer,
-                freezer: lastItem.freezer // Récupère le congélateur
+                freezer: lastItem.freezer 
             };
         }
         return null;
@@ -841,7 +838,7 @@
         qtyInput.value = currentQty + amount;
     }
 
-    // --- Gestion des Vues ---
+    // --- Gestion des Vues (unchanged) ---
     function switchView(view) {
         currentView = view;
         document.getElementById('btn-freezer').classList.toggle('active', view === 'freezer');
@@ -859,7 +856,7 @@
         renderList();
     }
 
-    // --- Ajout / Édition ---
+    // --- Ajout / Édition (unchanged) ---
     function handleFormSubmit() {
         const name = document.getElementById('itemName').value.trim();
         const cat = document.getElementById('itemCategory').value;
@@ -945,6 +942,23 @@
     }
 
     // --- Actions Item ---
+    
+    // NOUVELLE FONCTION : Supprime un élément après confirmation et le pousse dans l'historique
+    function deleteItem(id) {
+        const targetArray = currentView === 'freezer' ? inventory : shoppingList;
+        const index = targetArray.findIndex(i => i.id === id);
+        if (index === -1) return;
+        
+        const itemToDelete = targetArray[index];
+        
+        if (confirm(`Voulez-vous supprimer définitivement "${itemToDelete.name}" (${itemToDelete.qty} unité(s)) ?`)) {
+            pushToHistory(itemToDelete); 
+            targetArray.splice(index, 1);
+            save();
+        }
+    }
+
+
     function updateQty(id, change) {
         const targetArray = currentView === 'freezer' ? inventory : shoppingList;
         const index = targetArray.findIndex(i => i.id === id);
@@ -956,20 +970,19 @@
             const itemToDelete = targetArray[index];
 
             if (currentView === 'freezer') {
-                if (confirm(`Plus de ${itemToDelete.name}. Ajouter à la liste de courses ?`)) {
+                if (confirm(`Plus de ${itemToDelete.name}. Ajouter 1 à la liste de courses ?`)) {
                     // Conserve les champs essentiels pour l'achat
                     let item = { id: Date.now(), name: itemToDelete.name, category: itemToDelete.category, qty: 1, drawer: '?', freezer: '?' }; 
                     shoppingList.push(item);
-                } else if(confirm("Supprimer définitivement ?")) {
-                    pushToHistory(itemToDelete); 
+                    targetArray.splice(index, 1);
                 } else {
-                    targetArray[index].qty = 1; 
-                    save(); return;
+                    deleteItem(id); // Appel à la nouvelle fonction
+                    return;
                 }
             } else {
-                pushToHistory(itemToDelete); 
+                deleteItem(id); // Appel à la nouvelle fonction
+                return;
             }
-            targetArray.splice(index, 1);
         }
         save();
     }
@@ -979,7 +992,7 @@
         if (index === -1) return;
         const item = inventory[index];
         // Créer une nouvelle entrée dans la liste de courses
-        const newItem = { id: Date.now(), name: item.name, category: item.category, qty: 1, drawer: '?', freezer: '?' };
+        const newItem = { id: Date.now(), name: item.name, category: item.category, qty: item.qty, drawer: '?', freezer: '?' }; // Prend la quantité existante
         shoppingList.push(newItem);
         
         // Supprimer l'original
@@ -1163,8 +1176,11 @@
                         <button class="qty-btn btn-minus" onclick="updateQty(${item.id}, -1)">-</button>
                         <span class="table-qty-display" style="display:none;">${item.qty}</span> 
                         <button class="qty-btn btn-plus" onclick="updateQty(${item.id}, 1)">+</button>
+                        
                         <button class="tool-btn" onclick="startEdit(${item.id})" title="Éditer">✏️</button>
                         ${mainActionBtn}
+                        <button class="tool-btn" onclick="deleteItem(${item.id})" title="Supprimer définitivement">🗑️</button>
+                        
                         <a href="https://www.marmiton.org/recettes/recherche.aspx?aqt=${encodeURIComponent(item.name)}" target="_blank" class="tool-btn" title="Recette">👨‍🍳</a>
                     </div>
                 `;
@@ -1191,22 +1207,19 @@
     }
 
     // --- Fonctions Système (Impression & Backup) ---
-    function printInventory() { 
-        // L'action window.print() utilise automatiquement les styles @media print définis en CSS
-        window.print(); 
-    }
+    function printInventory() { window.print(); }
 
     function exportData() {
         const data = { 
             inventory: inventory, 
             shoppingList: shoppingList, 
             historyStack: historyStack,
-            version: 15 
+            version: 16 
         };
         const dataStr = JSON.stringify(data);
         const link = document.createElement('a');
         link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        link.download = `congelo_backup_V15_${new Date().toISOString().slice(0,10)}.json`;
+        link.download = `congelo_backup_V16_${new Date().toISOString().slice(0,10)}.json`;
         link.click();
     }
 
