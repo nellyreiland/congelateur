@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Congélo V9 ⭐</title>
+    <title>Mon Congélo V10 ⭐</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0288d1">
@@ -351,7 +351,15 @@
             <button onclick="changeQtyInput(5)">+5</button>
         </div>
         
-        <input type="date" id="itemDate">
+        <div class="form-row-full date-input-group" style="gap: 8px;">
+            <select id="itemDateMode" style="flex: 1;" onchange="updateDateFromMode()">
+                <option value="6m">📅 Durée : 6 mois</option>
+                <option value="3m">📅 Durée : 3 mois</option>
+                <option value="1y">📅 Durée : 1 an</option>
+                <option value="custom">📅 Date précise...</option>
+            </select>
+            <input type="date" id="itemDateCustom" style="flex: 1; display: none;">
+        </div>
         
         <button id="submit-btn" class="action-btn" onclick="handleFormSubmit()">Ajouter</button>
         <button id="cancel-btn" class="cancel-btn" onclick="resetForm()">Annuler</button>
@@ -383,18 +391,75 @@
     let autocompleteIndex = -1;
 
     const icons = { viande: '🥩', legume: '🥦', plat: '🍲', sucre: '🍦', pain: '🥖', autre: '🧊' };
+    
+    // NOUVEAU : Mappage Nom de produit -> Catégorie pour suggestion automatique
+    const nameToCategoryMap = {
+        'boeuf': 'viande', 'steak': 'viande', 'porc': 'viande', 'poulet': 'viande', 'dinde': 'viande',
+        'poisson': 'viande', 'saumon': 'viande', 'crevette': 'viande', 
+        'soupe': 'plat', 'pizza': 'plat', 'lasagne': 'plat', 'plat': 'plat', 'quiche': 'plat',
+        'glace': 'sucre', 'sorbet': 'sucre', 'dessert': 'sucre', 'gateau': 'sucre', 'tarte': 'sucre',
+        'brocoli': 'legume', 'épinard': 'legume', 'légume': 'legume', 'haricot': 'legume', 'frite': 'legume',
+        'pain': 'pain', 'baguette': 'pain', 'viennoiserie': 'pain', 'brioche': 'pain',
+    };
+    
+    function suggestCategory(name) {
+        const lowerName = name.toLowerCase();
+        for (const keyword in nameToCategoryMap) {
+            if (lowerName.includes(keyword)) {
+                return nameToCategoryMap[keyword];
+            }
+        }
+        return null; 
+    }
+
 
     // --- Fonctions Utilitaires ---
     
     // Calcule le nombre de jours entre deux dates
     const getDaysBetween = (date1, date2) => Math.ceil((new Date(date1) - new Date(date2)) / (86400000));
+    
+    // NOUVEAU : Logique de calcul de date à partir de la durée
+    function calculateFinalDate(mode, customDate = null) {
+        if (mode === 'custom' && customDate) {
+            return customDate; // Date précise choisie par l'utilisateur
+        }
+        
+        const today = new Date();
+        let duration = 0; // Durée en mois
 
-    // Prépare le champ Date avec une valeur par défaut (6 mois plus tard)
+        if (mode === '3m') duration = 3;
+        else if (mode === '6m') duration = 6;
+        else if (mode === '1y') duration = 12;
+
+        if (duration > 0) {
+            today.setMonth(today.getMonth() + duration);
+            return today.toISOString().split('T')[0];
+        }
+        
+        return null;
+    }
+
+    // NOUVEAU : Gère l'affichage du champ de date personnalisé
+    function updateDateFromMode() {
+        const mode = document.getElementById('itemDateMode').value;
+        const customInput = document.getElementById('itemDateCustom');
+        
+        if (mode === 'custom') {
+            customInput.style.display = 'block';
+            if (!editingId) customInput.value = ''; // Réinitialiser pour un nouvel ajout
+            customInput.focus();
+        } else {
+            customInput.style.display = 'none';
+        }
+    }
+
+    // Prépare le champ Date avec une valeur par défaut
     function setDefaultDate() {
         if (!editingId) {
-            const today = new Date();
-            const defaultDate = new Date(today.setMonth(today.getMonth() + 6)).toISOString().split('T')[0];
-            document.getElementById('itemDate').value = defaultDate;
+            // Nouvelle logique : sélectionne 6m par défaut et masque l'input personnalisé
+            document.getElementById('itemDateMode').value = '6m';
+            document.getElementById('itemDateCustom').style.display = 'none';
+            document.getElementById('itemDateCustom').value = ''; 
         }
     }
     
@@ -462,7 +527,7 @@
         return Array.from(names);
     }
     
-    /** NOUVEAU : Récupère la dernière catégorie et tiroir utilisés pour un article */
+    // Récupère la dernière catégorie et tiroir utilisés pour un article
     function getLastItemData(name) {
         // Cherche le dernier article ajouté avec ce nom
         const lastItem = inventory.slice().reverse().find(item => item.name === name);
@@ -528,19 +593,28 @@
         if (autocompleteIndex > -1) items[autocompleteIndex].scrollIntoView({ block: "nearest" });
     }
 
-    /** MODIFIÉ : Ajout du pré-remplissage */
+    // MODIFIÉ : Ajout du pré-remplissage et de la suggestion de catégorie
     function selectAutocomplete(name) {
         document.getElementById('itemName').value = name;
         document.getElementById('autocompleteList').innerHTML = '';
         autocompleteIndex = -1;
         
         const lastData = getLastItemData(name);
+        
         if (lastData) {
+            // Logique 1: Utiliser les données historiques (priorité)
             document.getElementById('itemCategory').value = lastData.category;
-            // Remplir le tiroir, mais seulement s'il existe et n'est pas '?'
             if (lastData.drawer && lastData.drawer !== '?') {
                 document.getElementById('itemDrawer').value = lastData.drawer;
             }
+        } else {
+            // Logique 2: Suggérer la catégorie basée sur le nom (si pas d'historique)
+            const suggestedCategory = suggestCategory(name);
+            if (suggestedCategory) {
+                document.getElementById('itemCategory').value = suggestedCategory;
+            }
+            // Réinitialiser le tiroir
+            document.getElementById('itemDrawer').value = '';
         }
     }
     
@@ -574,8 +648,13 @@
         const name = document.getElementById('itemName').value.trim();
         const cat = document.getElementById('itemCategory').value;
         const qty = parseInt(document.getElementById('itemQty').value) || 1;
-        const date = document.getElementById('itemDate').value;
         const drawer = document.getElementById('itemDrawer').value;
+        
+        // NOUVEAU : Récupération et calcul de la date
+        const dateMode = document.getElementById('itemDateMode').value;
+        const customDate = document.getElementById('itemDateCustom').value;
+        const finalDate = calculateFinalDate(dateMode, customDate);
+
 
         if (!name) return alert('Nom manquant !');
 
@@ -585,11 +664,25 @@
             // Modification
             const index = targetArray.findIndex(i => i.id === editingId);
             if (index !== -1) {
-                targetArray[index] = { ...targetArray[index], name, category: cat, qty, date, drawer: drawer || '?' };
+                targetArray[index] = { 
+                    ...targetArray[index], 
+                    name, 
+                    category: cat, 
+                    qty, 
+                    date: finalDate || null, // Utilise la date calculée
+                    drawer: drawer || '?' 
+                };
             }
         } else {
             // Création
-            targetArray.push({ id: Date.now(), name, category: cat, qty, date: date || null, drawer: drawer || '?' });
+            targetArray.push({ 
+                id: Date.now(), 
+                name, 
+                category: cat, 
+                qty, 
+                date: finalDate || null, // Utilise la date calculée
+                drawer: drawer || '?' 
+            });
         }
 
         save();
@@ -605,7 +698,11 @@
         document.getElementById('itemCategory').value = item.category;
         document.getElementById('itemQty').value = item.qty;
         document.getElementById('itemDrawer').value = item.drawer !== '?' ? item.drawer : '';
-        document.getElementById('itemDate').value = item.date || '';
+        
+        // NOUVEAU : En mode édition, on force le mode "Date précise" pour afficher la date existante.
+        document.getElementById('itemDateMode').value = 'custom';
+        document.getElementById('itemDateCustom').style.display = 'block';
+        document.getElementById('itemDateCustom').value = item.date || '';
 
         editingId = id;
         document.getElementById('submit-btn').textContent = "Modifier";
@@ -620,7 +717,7 @@
         document.getElementById('itemDrawer').value = '';
         
         document.getElementById('autocompleteList').innerHTML = ''; // Effacer autocomplétion
-        setDefaultDate(); // Rétablir la date par défaut
+        setDefaultDate(); // Rétablir la durée par défaut
         
         editingId = null;
         
@@ -677,7 +774,9 @@
         
         const drawer = prompt(`Tiroir pour ${item.name} ? (laisser vide si inconnu)`, item.drawer === '?' ? "1" : item.drawer) || "?";
         item.drawer = drawer;
-        item.date = new Date().toISOString().split('T')[0];
+        
+        // Nouvelle logique de date : 6 mois par défaut lors de la remise au congélateur
+        item.date = calculateFinalDate('6m', null); 
         
         inventory.push(item);
         shoppingList.splice(index, 1);
@@ -762,7 +861,8 @@
             let progress = 100; // Par défaut à 100% si frais ou en courses
             
             if (currentView === 'freezer' && item.date) {
-                const dateDebut = item.id; // Utilise l'ID comme date de début (estimation)
+                // Pour la progression, on utilise l'ID (timestamp d'ajout) comme date de début pour l'estimation
+                const dateDebut = item.id; 
                 const dateFin = new Date(item.date).getTime();
                 const now = Date.now();
                 
@@ -842,7 +942,7 @@
         const dataStr = JSON.stringify(data);
         const link = document.createElement('a');
         link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        link.download = `congelo_backup_V9_${new Date().toISOString().slice(0,10)}.json`;
+        link.download = `congelo_backup_V10_${new Date().toISOString().slice(0,10)}.json`;
         link.click();
     }
 
