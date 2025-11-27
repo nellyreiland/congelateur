@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Congélo V10 ⭐</title>
+    <title>Mon Congélo V11 🎤</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0288d1">
@@ -109,8 +109,8 @@
             box-sizing: border-box; 
         }
         
-        #itemName { position: relative; } 
-
+        #itemNameContainer { display: flex; flex: 2; gap: 5px; position: relative; } 
+        
         .input-mini { flex: 0 0 60px; min-width: 50px; }
         
         .qty-input-group { display: flex; flex: 1; gap: 5px; }
@@ -118,6 +118,20 @@
         .qty-input-group button { 
             flex: 0 0 35px; background: var(--success-light); color: var(--success); 
             border: 1px solid var(--success); border-radius: 8px; cursor: pointer; font-weight: bold;
+        }
+        
+        /* Nouveau bouton micro */
+        #voiceInputBtn { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            font-size: 1rem; 
+            cursor: pointer; 
+            flex-shrink: 0; 
+            width: 35px; 
+            padding: 0; 
+            margin: 0; 
+            align-self: stretch;
         }
 
         .form-row-full { display: flex; flex-basis: 100%; gap: 8px; }
@@ -202,9 +216,41 @@
 
         /* --- Liste Courses Spécifique --- */
         .shopping-mode .add-form { border-left-color: var(--warning); }
-        .shopping-mode #itemDrawer, .shopping-mode .drawer-badge, .shopping-mode .stat-alert, .shopping-mode #filterDrawer, .shopping-mode #filterAlert { display: none; }
+        .shopping-mode #itemDrawer, .shopping-mode .drawer-badge, .shopping-mode .stat-alert, .shopping-mode #filterDrawer, .shopping-mode #filterAlert, .shopping-mode .date-input-group { display: none; }
         .shopping-mode .stat-total { background-color: var(--warning); color: var(--text); }
         .shopping-mode .item-card { border-left-color: var(--warning); opacity: 0.9; }
+
+        /* --- Mode Lecture Spécifique (Maison/Extérieur) --- */
+        .read-mode .item-card {
+            padding: 8px 10px; 
+            align-items: center;
+        }
+        .read-mode .actions-right, 
+        .read-mode .card-tools, 
+        .read-mode .progress-bar, 
+        .read-mode .meta-info span:not(.drawer-badge), /* Cache la date, garde le tiroir */
+        .read-mode .qty-controls {
+            display: none !important; 
+        }
+        .read-mode .qty-display {
+            display: block !important; /* Afficher la quantité simple */
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text);
+            padding: 0 5px;
+        }
+        .read-mode .item-info h3 {
+            font-size: 1.1rem; 
+        }
+        .read-mode .meta-info {
+            font-size: 0.9rem; 
+            margin-top: 0;
+        }
+        .read-mode .category-icon {
+            width: 35px; height: 35px; 
+            font-size: 1.2rem;
+        }
+
 
         /* --- Historique --- */
         #history-bar {
@@ -325,6 +371,7 @@
             
             <button id="filterAlert" class="filter-btn" onclick="toggleAlertFilter()">🚨 Alerte</button>
             <button id="printBtn" class="filter-btn" onclick="printInventory()">🖨️ Imprimer</button>
+            <button id="readModeToggle" class="filter-btn" onclick="toggleReadMode()">👀 Mode Lecture</button>
         </div>
     </div>
 
@@ -338,8 +385,9 @@
             <option value="autre">🧊</option>
         </select>
         
-        <div style="position:relative; flex: 2;">
-            <input type="text" id="itemName" placeholder="Produit..." oninput="showAutocomplete()" onkeydown="handleAutocompleteKey(event)" required>
+        <div id="itemNameContainer">
+            <input type="text" id="itemName" placeholder="Produit..." oninput="showAutocomplete()" onkeydown="handleAutocompleteKey(event)" required style="flex-grow: 1;">
+            <button id="voiceInputBtn" type="button" onclick="startVoiceInput()" title="Saisie Vocale">🎤</button>
             <div class="autocomplete-list" id="autocompleteList"></div>
         </div>
 
@@ -389,14 +437,14 @@
     let editingId = null;
     let alertFilterActive = false;
     let autocompleteIndex = -1;
+    let readModeActive = false; // NOUVEAU: État du mode lecture
 
     const icons = { viande: '🥩', legume: '🥦', plat: '🍲', sucre: '🍦', pain: '🥖', autre: '🧊' };
     
-    // NOUVEAU : Mappage Nom de produit -> Catégorie pour suggestion automatique
     const nameToCategoryMap = {
         'boeuf': 'viande', 'steak': 'viande', 'porc': 'viande', 'poulet': 'viande', 'dinde': 'viande',
         'poisson': 'viande', 'saumon': 'viande', 'crevette': 'viande', 
-        'soupe': 'plat', 'pizza': 'plat', 'lasagne': 'plat', 'plat': 'plat', 'quiche': 'plat',
+        'soupe': 'plat', 'pizza': 'plat', 'lasagne': 'plat', 'plat': 'plat', 'quiche': 'plat', 'pâte': 'plat',
         'glace': 'sucre', 'sorbet': 'sucre', 'dessert': 'sucre', 'gateau': 'sucre', 'tarte': 'sucre',
         'brocoli': 'legume', 'épinard': 'legume', 'légume': 'legume', 'haricot': 'legume', 'frite': 'legume',
         'pain': 'pain', 'baguette': 'pain', 'viennoiserie': 'pain', 'brioche': 'pain',
@@ -412,16 +460,13 @@
         return null; 
     }
 
-
     // --- Fonctions Utilitaires ---
     
-    // Calcule le nombre de jours entre deux dates
     const getDaysBetween = (date1, date2) => Math.ceil((new Date(date1) - new Date(date2)) / (86400000));
     
-    // NOUVEAU : Logique de calcul de date à partir de la durée
     function calculateFinalDate(mode, customDate = null) {
         if (mode === 'custom' && customDate) {
-            return customDate; // Date précise choisie par l'utilisateur
+            return customDate; 
         }
         
         const today = new Date();
@@ -439,24 +484,21 @@
         return null;
     }
 
-    // NOUVEAU : Gère l'affichage du champ de date personnalisé
     function updateDateFromMode() {
         const mode = document.getElementById('itemDateMode').value;
         const customInput = document.getElementById('itemDateCustom');
         
         if (mode === 'custom') {
             customInput.style.display = 'block';
-            if (!editingId) customInput.value = ''; // Réinitialiser pour un nouvel ajout
+            if (!editingId) customInput.value = ''; 
             customInput.focus();
         } else {
             customInput.style.display = 'none';
         }
     }
 
-    // Prépare le champ Date avec une valeur par défaut
     function setDefaultDate() {
         if (!editingId) {
-            // Nouvelle logique : sélectionne 6m par défaut et masque l'input personnalisé
             document.getElementById('itemDateMode').value = '6m';
             document.getElementById('itemDateCustom').style.display = 'none';
             document.getElementById('itemDateCustom').value = ''; 
@@ -476,11 +518,109 @@
         renderStats();
     }
 
+    // --- Saisie Vocale (NOUVEAU) ---
+    let voiceRecognition;
+    if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+        voiceRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        voiceRecognition.lang = 'fr-FR';
+        voiceRecognition.interimResults = false;
+        voiceRecognition.maxAlternatives = 1;
+    }
+
+    function startVoiceInput() {
+        if (!voiceRecognition) {
+            alert("La saisie vocale n'est pas supportée par votre navigateur ou doit être activée.");
+            return;
+        }
+        
+        const btn = document.getElementById('voiceInputBtn');
+        btn.textContent = '🔴';
+        
+        voiceRecognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            parseVoiceText(transcript);
+            btn.textContent = '🎤';
+            alert(`Commande vocale traitée : "${transcript}"`);
+        };
+        
+        voiceRecognition.onerror = (event) => {
+            console.error('Erreur vocale:', event.error);
+            btn.textContent = '🎤';
+            alert("Erreur de reconnaissance vocale. Veuillez réessayer.");
+        };
+
+        voiceRecognition.onend = () => {
+            btn.textContent = '🎤';
+        };
+
+        voiceRecognition.start();
+    }
+
+    function parseVoiceText(text) {
+        const lowerText = text.toLowerCase();
+        
+        const numMap = {'un': 1, 'une': 1, 'deux': 2, 'trois': 3, 'quatre': 4, 'cinq': 5, 'six': 6, 'sept': 7, 'huit': 8, 'neuf': 9, 'dix': 10, 'douze': 12};
+        
+        // 1. Quantité
+        let qtyMatch = lowerText.match(/(\d+)/) || lowerText.match(/(un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)/);
+        let qty = 1;
+        if (qtyMatch) {
+            qty = parseInt(qtyMatch[0]) || numMap[qtyMatch[0]] || 1;
+            document.getElementById('itemQty').value = qty;
+        }
+        
+        // 2. Tiroir
+        let drawerMatch = lowerText.match(/tiroir\s?(\d+)/);
+        if (drawerMatch) {
+            document.getElementById('itemDrawer').value = drawerMatch[1];
+        }
+        
+        // 3. Durée (pour la date)
+        let durationMatch = lowerText.match(/(\d+|un|une|six|douze)\s?(mois|an|ans)/);
+        if (durationMatch) {
+            const valStr = durationMatch[1].toLowerCase();
+            const val = numMap[valStr] || parseInt(valStr) || 6;
+            const unit = durationMatch[2];
+            let mode = '6m'; 
+            
+            if (unit.startsWith('an')) mode = '1y';
+            if (unit.startsWith('mois')) {
+                if (val === 3) mode = '3m';
+                if (val === 6) mode = '6m';
+                if (val === 12) mode = '1y';
+            }
+            document.getElementById('itemDateMode').value = mode;
+            updateDateFromMode(); 
+        }
+
+        // 4. Nom (le reste du texte)
+        let name = lowerText;
+        // Supprimer les mots-clés de la quantité, du tiroir et de la durée
+        name = name.replace(/ajouter|mettre|j'ajoute|j'ai|tiroir\s?\d+|pour\s?\d+\s?(mois|an|ans)|(\d+)|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix/g, '').trim();
+        name = name.replace(/\s{2,}/g, ' ').trim(); // Nettoyage des espaces multiples
+        name = name.charAt(0).toUpperCase() + name.slice(1); // Première lettre majuscule
+        document.getElementById('itemName').value = name;
+        
+        // Déclencher l'autocomplétion/suggestion de catégorie
+        selectAutocomplete(name); 
+    }
+    
+    // --- Mode Lecture (NOUVEAU) ---
+    function toggleReadMode() {
+        readModeActive = !readModeActive;
+        const btn = document.getElementById('readModeToggle');
+        btn.classList.toggle('active', readModeActive);
+        btn.textContent = readModeActive ? '✅ Mode Lecture' : '👀 Mode Lecture';
+        document.body.classList.toggle('read-mode', readModeActive);
+        renderList();
+    }
+
+
     // --- Sauvegarde ---
     function save() {
         localStorage.setItem('freezerData', JSON.stringify(inventory));
         localStorage.setItem('shoppingData', JSON.stringify(shoppingList));
-        localStorage.setItem('historyData', JSON.stringify(historyStack.slice(0, 5))); // Limite l'historique à 5
+        localStorage.setItem('historyData', JSON.stringify(historyStack.slice(0, 5))); 
         localStorage.setItem('currentView', currentView);
         renderList();
         renderStats();
@@ -520,16 +660,14 @@
         showHistoryBar();
     }
 
-    // --- Saisie (Autocomplétion & Quantité) ---
+    // --- Saisie (Autocomplétion) ---
     function getUniqueNames() {
         const names = new Set();
         inventory.forEach(item => names.add(item.name));
         return Array.from(names);
     }
     
-    // Récupère la dernière catégorie et tiroir utilisés pour un article
     function getLastItemData(name) {
-        // Cherche le dernier article ajouté avec ce nom
         const lastItem = inventory.slice().reverse().find(item => item.name === name);
         if (lastItem) {
             return {
@@ -546,13 +684,20 @@
         const value = input.value.toLowerCase();
         listEl.innerHTML = '';
         autocompleteIndex = -1;
+        
+        // Déclencher la suggestion de catégorie à chaque saisie pour les nouveaux items
+        const suggestedCategory = suggestCategory(input.value);
+        if (suggestedCategory) {
+            document.getElementById('itemCategory').value = suggestedCategory;
+        }
+
 
         if (value.length < 2) return;
 
         const uniqueNames = getUniqueNames();
         const suggestions = uniqueNames.filter(name => 
             name.toLowerCase().includes(value)
-        ).slice(0, 5); // Limite à 5 suggestions
+        ).slice(0, 5); 
         
         if (suggestions.length === 0) return;
 
@@ -582,7 +727,7 @@
             if (autocompleteIndex > -1) {
                 selectAutocomplete(items[autocompleteIndex].textContent);
             } else {
-                handleFormSubmit(); // Soumettre si aucune suggestion sélectionnée
+                handleFormSubmit(); 
             }
             return;
         }
@@ -593,7 +738,6 @@
         if (autocompleteIndex > -1) items[autocompleteIndex].scrollIntoView({ block: "nearest" });
     }
 
-    // MODIFIÉ : Ajout du pré-remplissage et de la suggestion de catégorie
     function selectAutocomplete(name) {
         document.getElementById('itemName').value = name;
         document.getElementById('autocompleteList').innerHTML = '';
@@ -602,18 +746,17 @@
         const lastData = getLastItemData(name);
         
         if (lastData) {
-            // Logique 1: Utiliser les données historiques (priorité)
+            // Pré-remplissage historique
             document.getElementById('itemCategory').value = lastData.category;
             if (lastData.drawer && lastData.drawer !== '?') {
                 document.getElementById('itemDrawer').value = lastData.drawer;
             }
         } else {
-            // Logique 2: Suggérer la catégorie basée sur le nom (si pas d'historique)
+            // Suggestion basée sur le nom si pas d'historique
             const suggestedCategory = suggestCategory(name);
             if (suggestedCategory) {
                 document.getElementById('itemCategory').value = suggestedCategory;
             }
-            // Réinitialiser le tiroir
             document.getElementById('itemDrawer').value = '';
         }
     }
@@ -631,10 +774,9 @@
         document.getElementById('btn-shopping').classList.toggle('active', view === 'shopping');
         document.body.classList.toggle('shopping-mode', view === 'shopping');
         
-        // Ajuster le formulaire selon la vue
         document.getElementById('submit-btn').textContent = view === 'shopping' ? "Ajouter à la liste" : "Ajouter au congélo";
         resetForm();
-        save(); // Sauvegarde la vue
+        save(); 
     }
 
     function toggleAlertFilter() {
@@ -650,11 +792,9 @@
         const qty = parseInt(document.getElementById('itemQty').value) || 1;
         const drawer = document.getElementById('itemDrawer').value;
         
-        // NOUVEAU : Récupération et calcul de la date
         const dateMode = document.getElementById('itemDateMode').value;
         const customDate = document.getElementById('itemDateCustom').value;
         const finalDate = calculateFinalDate(dateMode, customDate);
-
 
         if (!name) return alert('Nom manquant !');
 
@@ -669,7 +809,7 @@
                     name, 
                     category: cat, 
                     qty, 
-                    date: finalDate || null, // Utilise la date calculée
+                    date: finalDate || null, 
                     drawer: drawer || '?' 
                 };
             }
@@ -680,7 +820,7 @@
                 name, 
                 category: cat, 
                 qty, 
-                date: finalDate || null, // Utilise la date calculée
+                date: finalDate || null, 
                 drawer: drawer || '?' 
             });
         }
@@ -699,7 +839,6 @@
         document.getElementById('itemQty').value = item.qty;
         document.getElementById('itemDrawer').value = item.drawer !== '?' ? item.drawer : '';
         
-        // NOUVEAU : En mode édition, on force le mode "Date précise" pour afficher la date existante.
         document.getElementById('itemDateMode').value = 'custom';
         document.getElementById('itemDateCustom').style.display = 'block';
         document.getElementById('itemDateCustom').value = item.date || '';
@@ -716,8 +855,8 @@
         document.getElementById('itemQty').value = '1';
         document.getElementById('itemDrawer').value = '';
         
-        document.getElementById('autocompleteList').innerHTML = ''; // Effacer autocomplétion
-        setDefaultDate(); // Rétablir la durée par défaut
+        document.getElementById('autocompleteList').innerHTML = ''; 
+        setDefaultDate(); 
         
         editingId = null;
         
@@ -740,18 +879,16 @@
 
             if (currentView === 'freezer') {
                 if (confirm(`Plus de ${itemToDelete.name}. Ajouter à la liste de courses ?`)) {
-                    // Transfert vers Courses
                     let item = { ...itemToDelete, qty: 1, drawer: '?' };
                     shoppingList.push(item);
                 } else if(confirm("Supprimer définitivement ?")) {
-                    pushToHistory(itemToDelete); // Ajout à l'historique
+                    pushToHistory(itemToDelete); 
                 } else {
-                    targetArray[index].qty = 1; // Annulation
+                    targetArray[index].qty = 1; 
                     save(); return;
                 }
             } else {
-                // Suppression liste courses
-                pushToHistory(itemToDelete); // Ajout à l'historique
+                pushToHistory(itemToDelete); 
             }
             targetArray.splice(index, 1);
         }
@@ -761,7 +898,7 @@
     function moveToShop(id) {
         const index = inventory.findIndex(i => i.id === id);
         if (index === -1) return;
-        const item = { ...inventory[index], qty: 1 }; // Reset qté pour achat
+        const item = { ...inventory[index], qty: 1 }; 
         shoppingList.push(item);
         inventory.splice(index, 1);
         save();
@@ -772,10 +909,8 @@
         if (index === -1) return;
         const item = shoppingList[index];
         
-        const drawer = prompt(`Tiroir pour ${item.name} ? (laisser vide si inconnu)`, item.drawer === '?' ? "1" : item.drawer) || "?";
+        const drawer = prompt(`Tiroir pour ${item.name} ?`, item.drawer === '?' ? "1" : item.drawer) || "?";
         item.drawer = drawer;
-        
-        // Nouvelle logique de date : 6 mois par défaut lors de la remise au congélateur
         item.date = calculateFinalDate('6m', null); 
         
         inventory.push(item);
@@ -815,35 +950,33 @@
         const drawFilter = document.getElementById('filterDrawer').value;
         const sortMode = document.getElementById('sortSelect').value;
 
-        // Filtrage
+        // Filtrage... (logique inchangée)
+
         let filtered = targetArray.filter(item => {
             const matchSearch = item.name.toLowerCase().includes(searchVal);
             const matchCat = (catFilter === 'all' || item.category === catFilter);
             
-            // Filtre Tiroir (uniquement pour Freezer)
             const matchDrawer = (currentView === 'shopping') || (drawFilter === 'all' || (item.drawer && item.drawer.toString() === drawFilter));
 
-            // Filtre Alerte (uniquement pour Freezer)
             let matchAlert = true;
             if (currentView === 'freezer' && alertFilterActive) {
                 if (item.date) {
                     const diff = getDaysBetween(item.date, new Date());
-                    matchAlert = (diff < 30); // 30 jours ou moins
+                    matchAlert = (diff < 30); 
                 } else {
-                    matchAlert = false; // Exclure si pas de date
+                    matchAlert = false; 
                 }
             }
 
             return matchSearch && matchCat && matchDrawer && matchAlert;
         });
 
-        // Tri
+        // Tri... (logique inchangée)
         filtered.sort((a, b) => {
             if (sortMode === 'name') return a.name.localeCompare(b.name);
             if (sortMode === 'drawer') return (a.drawer || '9').toString().localeCompare((b.drawer || '9').toString());
             
-            // Date par défaut (plus proche d'abord)
-            const dateA = a.date ? new Date(a.date) : new Date(8640000000000000); // Date max si pas de date
+            const dateA = a.date ? new Date(a.date) : new Date(8640000000000000); 
             const dateB = b.date ? new Date(b.date) : new Date(8640000000000000); 
             return dateA - dateB;
         });
@@ -858,10 +991,9 @@
             
             let dateInfo = '';
             let statusClass = 'fresh';
-            let progress = 100; // Par défaut à 100% si frais ou en courses
+            let progress = 100; 
             
             if (currentView === 'freezer' && item.date) {
-                // Pour la progression, on utilise l'ID (timestamp d'ajout) comme date de début pour l'estimation
                 const dateDebut = item.id; 
                 const dateFin = new Date(item.date).getTime();
                 const now = Date.now();
@@ -875,7 +1007,7 @@
                 if (totalDuration > 0) {
                     progress = Math.max(0, 100 - (elapsedDuration / totalDuration) * 100);
                 } else {
-                    progress = 0; // Si déjà dépassé la date d'ajout
+                    progress = 0; 
                 }
                 
                 if(diff < 0) { 
@@ -891,7 +1023,6 @@
             
             const recipeLink = `https://www.marmiton.org/recettes/recherche.aspx?aqt=${encodeURIComponent(item.name)}`;
             
-            // Boutons d'action spécifiques
             let mainActionBtn = '';
             if (currentView === 'freezer') {
                 mainActionBtn = `<button class="tool-btn btn-shop" onclick="moveToShop(${item.id})" title="Envoyer liste courses">🛒 >List</button>`;
@@ -902,47 +1033,63 @@
             const drawerHtml = (currentView === 'freezer' && item.drawer && item.drawer !== '?') 
                 ? `<span class="drawer-badge">Tir. ${item.drawer}</span>` : '';
 
-            li.innerHTML = `
-                <div class="item-left">
-                    <div class="category-icon">${icons[item.category] || '🧊'}</div>
-                    <div class="item-info">
-                        <h3>${item.name}</h3>
-                        <div class="meta-info">
-                            ${drawerHtml}
-                            <span>${dateInfo}</span>
-                        </div>
-                        <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%;"></div></div>
-                        <div class="card-tools">
-                            <button class="tool-btn btn-edit" onclick="startEdit(${item.id})">✏️ Éditer</button>
-                            <a href="${recipeLink}" target="_blank" class="tool-btn">👨‍🍳 Recette</a>
-                            ${mainActionBtn}
+            // NOUVEAU: Rendu simplifié pour le mode lecture
+            if (readModeActive) {
+                li.innerHTML = `
+                    <div class="item-left">
+                        <div class="category-icon">${icons[item.category] || '🧊'}</div>
+                        <div class="item-info">
+                            <h3>${item.name}</h3>
+                            <div class="meta-info">
+                                ${drawerHtml}
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="actions-right">
-                    <div class="qty-controls">
-                        <button class="qty-btn btn-minus" onclick="updateQty(${item.id}, -1)">-</button>
-                        <span class="qty-display">${item.qty}</span>
-                        <button class="qty-btn btn-plus" onclick="updateQty(${item.id}, 1)">+</button>
+                    <span class="qty-display">${item.qty}</span>
+                `;
+            } else {
+                // Rendu détaillé (mode normal)
+                li.innerHTML = `
+                    <div class="item-left">
+                        <div class="category-icon">${icons[item.category] || '🧊'}</div>
+                        <div class="item-info">
+                            <h3>${item.name}</h3>
+                            <div class="meta-info">
+                                ${drawerHtml}
+                                <span class="date-text">${dateInfo}</span>
+                            </div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%;"></div></div>
+                            <div class="card-tools">
+                                <button class="tool-btn btn-edit" onclick="startEdit(${item.id})">✏️ Éditer</button>
+                                <a href="${recipeLink}" target="_blank" class="tool-btn">👨‍🍳 Recette</a>
+                                ${mainActionBtn}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            `;
+                    
+                    <div class="actions-right">
+                        <div class="qty-controls">
+                            <button class="qty-btn btn-minus" onclick="updateQty(${item.id}, -1)">-</button>
+                            <span class="qty-display">${item.qty}</span>
+                            <button class="qty-btn btn-plus" onclick="updateQty(${item.id}, 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
             listEl.appendChild(li);
         });
     }
 
     // --- Fonctions Système (Impression & Backup) ---
-    function printInventory() {
-        window.print();
-    }
+    function printInventory() { window.print(); }
 
     function exportData() {
         const data = { inventory, shoppingList, historyStack };
         const dataStr = JSON.stringify(data);
         const link = document.createElement('a');
         link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        link.download = `congelo_backup_V10_${new Date().toISOString().slice(0,10)}.json`;
+        link.download = `congelo_backup_V11_${new Date().toISOString().slice(0,10)}.json`;
         link.click();
     }
 
@@ -953,7 +1100,6 @@
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                // Support ancien format (tableau direct) ou nouveau format (objet)
                 if (Array.isArray(data)) {
                     inventory = data; 
                 } else if (data.inventory) {
@@ -971,18 +1117,16 @@
     // --- Initialisation au chargement ---
     window.onload = function() {
         setDefaultDate();
-        switchView(currentView); // Initialise la vue (freezer ou shopping)
+        switchView(currentView); 
         showHistoryBar();
         
-        // Cacher l'autocomplétion si l'utilisateur clique en dehors
         document.addEventListener('click', (e) => {
-            if (!document.getElementById('itemName').contains(e.target)) {
+            if (!document.getElementById('itemNameContainer').contains(e.target)) {
                 document.getElementById('autocompleteList').innerHTML = '';
             }
         });
     };
 
-    // PWA Service Worker (inchangé)
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW fail', err));
