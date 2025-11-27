@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Congélo V8 🌟</title>
+    <title>Mon Congélo V9 ⭐</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0288d1">
@@ -220,7 +220,7 @@
         }
         #history-message { font-size: 0.9rem; }
         
-        /* --- RÈGLES D'IMPRESSION (AJOUTÉES) --- */
+        /* --- RÈGLES D'IMPRESSION --- */
         @media print {
             /* Cache tous les éléments de l'interface qui ne sont pas la liste */
             header, 
@@ -270,7 +270,6 @@
                 width: 30px; height: 30px;
             }
         }
-        /* FIN DU BLOC @media print */
     </style>
 </head>
 <body>
@@ -322,11 +321,9 @@
                 <option value="4">4</option>
                 <option value="5">5</option>
                 <option value="6">6</option>
-<option value="7">7</option>
             </select>
             
             <button id="filterAlert" class="filter-btn" onclick="toggleAlertFilter()">🚨 Alerte</button>
-            
             <button id="printBtn" class="filter-btn" onclick="printInventory()">🖨️ Imprimer</button>
         </div>
     </div>
@@ -465,6 +462,19 @@
         return Array.from(names);
     }
     
+    /** NOUVEAU : Récupère la dernière catégorie et tiroir utilisés pour un article */
+    function getLastItemData(name) {
+        // Cherche le dernier article ajouté avec ce nom
+        const lastItem = inventory.slice().reverse().find(item => item.name === name);
+        if (lastItem) {
+            return {
+                category: lastItem.category,
+                drawer: lastItem.drawer
+            };
+        }
+        return null;
+    }
+
     function showAutocomplete() {
         const input = document.getElementById('itemName');
         const listEl = document.getElementById('autocompleteList');
@@ -518,10 +528,20 @@
         if (autocompleteIndex > -1) items[autocompleteIndex].scrollIntoView({ block: "nearest" });
     }
 
+    /** MODIFIÉ : Ajout du pré-remplissage */
     function selectAutocomplete(name) {
         document.getElementById('itemName').value = name;
         document.getElementById('autocompleteList').innerHTML = '';
         autocompleteIndex = -1;
+        
+        const lastData = getLastItemData(name);
+        if (lastData) {
+            document.getElementById('itemCategory').value = lastData.category;
+            // Remplir le tiroir, mais seulement s'il existe et n'est pas '?'
+            if (lastData.drawer && lastData.drawer !== '?') {
+                document.getElementById('itemDrawer').value = lastData.drawer;
+            }
+        }
     }
     
     function changeQtyInput(amount) {
@@ -822,7 +842,7 @@
         const dataStr = JSON.stringify(data);
         const link = document.createElement('a');
         link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        link.download = `congelo_backup_V8_${new Date().toISOString().slice(0,10)}.json`;
+        link.download = `congelo_backup_V9_${new Date().toISOString().slice(0,10)}.json`;
         link.click();
     }
 
@@ -874,4 +894,3 @@
 </script>
 </body>
 </html>
-
