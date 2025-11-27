@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Congélo V13 (FULL FEATURES) 🎤📦</title>
+    <title>Mon Congélo V14 (Tableau) 🎤📦</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0288d1">
@@ -53,7 +53,7 @@
             transition: background 0.3s, color 0.3s;
         }
 
-        .container { max-width: 600px; margin: 0 auto; }
+        .container { max-width: 650px; margin: 0 auto; }
 
         /* --- En-tête & Compteurs --- */
         header { margin-bottom: 15px; }
@@ -166,96 +166,100 @@
         .autocomplete-item:hover, .autocomplete-item.active { background-color: var(--bg); }
 
 
-        /* --- Liste --- */
-        ul { list-style: none; padding: 0; }
+        /* --- TABLEAU LISTE (NOUVEAU) --- */
+        #list-container {
+            overflow-x: auto; /* Permet le défilement horizontal sur mobile */
+            padding-top: 5px;
+        }
+        #inventory-table {
+            width: 100%;
+            min-width: 550px; /* Assure une largeur minimale pour les colonnes */
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden; /* Pour contenir les coins arrondis */
+        }
+        #inventory-table th, #inventory-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        #inventory-table th {
+            background-color: var(--bg);
+            font-weight: bold;
+            color: var(--text);
+        }
+        #inventory-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Largeur des colonnes */
+        #inventory-table th:nth-child(1), #inventory-table td:nth-child(1) { width: 30%; } /* Nom */
+        #inventory-table th:nth-child(2), #inventory-table td:nth-child(2) { width: 5%; text-align: center; } /* Qté */
+        #inventory-table th:nth-child(3), #inventory-table td:nth-child(3) { width: 5%; } /* App. */
+        #inventory-table th:nth-child(4), #inventory-table td:nth-child(4) { width: 5%; } /* Tir. */
+        #inventory-table th:nth-child(5), #inventory-table td:nth-child(5) { width: 25%; } /* Statut */
+        #inventory-table th:nth-child(6), #inventory-table td:nth-child(6) { width: 30%; } /* Actions */
 
-        .item-card {
-            background: var(--card-bg); border-radius: 12px; padding: 10px;
-            margin-bottom: 10px; box-shadow: var(--shadow); display: flex;
-            justify-content: space-between; align-items: center;
-            border-left: 5px solid var(--border); position: relative;
+
+        .table-qty-display {
+            font-weight: bold;
+            color: var(--text);
+            font-size: 1rem;
+        }
+        .table-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: nowrap;
+        }
+        .table-actions .qty-btn {
+            width: 20px; 
+            height: 20px;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .tool-btn {
+            font-size: 0.75rem; 
+            padding: 3px 6px; 
+            border-radius: 4px; 
+            border: 1px solid var(--border); 
+            background: var(--bg); 
+            color: var(--text);
+            cursor: pointer;
+            flex-shrink: 0;
         }
 
-        .item-left { display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden; }
-        .category-icon { font-size: 1.5rem; background: var(--bg); width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%; flex-shrink: 0; }
-        .item-info { min-width: 0; }
-        .item-info h3 { margin: 0; font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .meta-info { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 0.8rem; color: var(--text-sec); }
-        
-        .badge { /* Base pour les badges */
+        /* Badges de Statut dans le tableau */
+        .date-status-badge {
             font-size: 0.7rem;
-            padding: 2px 5px;
+            padding: 2px 6px;
             border-radius: 4px;
             font-weight: bold;
             color: white;
-            flex-shrink: 0;
+            white-space: nowrap;
         }
-        .drawer-badge { background-color: var(--drawer-tag); }
-        .freezer-badge { background-color: var(--freezer-tag); } /* Badge Congélo */
+        .status-fresh { background-color: var(--success); }
+        .status-soon { background-color: var(--warning); }
+        .status-expired { background-color: var(--danger); }
+        .status-neutral { background-color: var(--text-sec); }
 
-
-        /* --- Barres de Progression --- */
-        .progress-bar {
-            height: 4px; background: var(--border); border-radius: 2px;
-            margin-top: 4px; width: 100%; overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%; transition: width 0.3s;
-        }
-        .fresh .progress-fill { background-color: var(--success); }
-        .soon .progress-fill { background-color: var(--warning); }
-        .expired .progress-fill { background-color: var(--danger); }
-        .shopping-mode .progress-bar { display: none; }
-
-
-        /* --- Contrôles Item --- */
-        .actions-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-        .qty-controls {
-            display: flex; align-items: center; gap: 2px; background: var(--bg); padding: 2px; border-radius: 6px;
-        }
-        .qty-btn { width: 24px; height: 24px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .btn-minus { background: var(--danger-light); color: var(--danger); }
-        .btn-plus { background: var(--success-light); color: var(--success); }
-        .qty-display { font-weight: bold; min-width: 18px; text-align: center; font-size: 0.85rem; color: var(--text); }
-        
-        .card-tools { display: flex; gap: 5px; margin-top: 2px; }
-        .tool-btn { font-size: 0.8rem; padding: 3px 6px; border-radius: 4px; text-decoration: none; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
-        .btn-edit { color: var(--primary); border-color: var(--primary); }
-        .btn-shop { color: var(--warning); border-color: var(--warning); } 
-
-        /* --- Codes Couleurs --- */
-        .expired { border-left-color: var(--danger); }
-        .soon { border-left-color: var(--warning); }
-        .fresh { border-left-color: var(--success); }
 
         /* --- Liste Courses Spécifique --- */
-        .shopping-mode .add-form { border-left-color: var(--warning); }
-        /* Cache les filtres de localisation et d'alerte dans la vue Courses */
-        .shopping-mode #filterDrawer, .shopping-mode #filterFreezer, .shopping-mode #filterAlert, .shopping-mode #readModeToggle { display: none; } 
-        .shopping-mode .stat-alert { display: none; }
+        .shopping-mode #inventory-table { border-left: 5px solid var(--warning); }
         .shopping-mode .stat-total { background-color: var(--warning); color: var(--text); }
-        .shopping-mode .item-card { border-left-color: var(--warning); opacity: 0.9; }
+        /* Cache les colonnes inutiles en mode courses */
+        .shopping-mode #inventory-table th:nth-child(3), .shopping-mode #inventory-table td:nth-child(3),
+        .shopping-mode #inventory-table th:nth-child(4), .shopping-mode #inventory-table td:nth-child(4),
+        .shopping-mode #inventory-table th:nth-child(5), .shopping-mode #inventory-table td:nth-child(5) { 
+            display: none; 
+        }
 
-        /* --- Mode Lecture Spécifique (Maison/Extérieur) --- */
-        .read-mode .item-card { padding: 8px 10px; align-items: center; }
-        .read-mode .actions-right, 
-        .read-mode .card-tools, 
-        .read-mode .progress-bar, 
-        .read-mode .date-text, 
-        .read-mode .qty-controls {
-            display: none !important; 
-        }
-        .read-mode .qty-display {
-            display: block !important; 
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--text);
-            padding: 0 5px;
-        }
-        .read-mode .item-info h3 { font-size: 1.1rem; }
-        .read-mode .meta-info { font-size: 0.9rem; margin-top: 0; }
-        .read-mode .category-icon { width: 35px; height: 35px; font-size: 1.2rem; }
+        /* --- Mode Lecture Spécifique --- */
+        .read-mode #inventory-table th:nth-child(6), .read-mode #inventory-table td:nth-child(6) { display: none; } /* Cache les actions */
+        .read-mode .table-qty-display { font-size: 1.1rem; }
 
 
         /* --- Historique --- */
@@ -299,6 +303,7 @@
         
         <div class="filters-row">
             <select id="sortSelect" class="filter-select" onchange="renderList()">
+                <option value="freezerDate">Appareil + Date</option>
                 <option value="date">📅 Date (Péremption)</option>
                 <option value="drawer">📂 Tiroir</option>
                 <option value="name">🔤 Nom (A-Z)</option>
@@ -384,7 +389,7 @@
         </div>
     </div>
 
-    <ul id="inventory-list"></ul>
+    <div id="list-container"></div>
     
     <div style="text-align:center; margin-top:30px; opacity:0.6; font-size:0.8rem;">
         <span onclick="exportData()">💾 Sauvegarder</span> | 
@@ -669,7 +674,7 @@
             return {
                 category: lastItem.category,
                 drawer: lastItem.drawer,
-                freezer: item.freezer // Récupère le congélateur
+                freezer: lastItem.freezer // Récupère le congélateur
             };
         }
         return null;
@@ -960,8 +965,8 @@
     }
 
     function renderList() {
-        const listEl = document.getElementById('inventory-list');
-        listEl.innerHTML = '';
+        const listContainer = document.getElementById('list-container');
+        listContainer.innerHTML = '';
         
         const targetArray = currentView === 'freezer' ? inventory : shoppingList;
         const searchVal = document.getElementById('searchInput').value.toLowerCase();
@@ -1004,7 +1009,9 @@
 
         // Tri (par appareil en premier, puis par date)
         filtered.sort((a, b) => {
-            if (currentView === 'freezer') {
+            const sortMode = document.getElementById('sortSelect').value;
+            
+            if (sortMode === 'freezerDate' || currentView === 'freezer') {
                 // Tri 1: par appareil (C1, C2, C3)
                 const freezerA = a.freezer || 'C1';
                 const freezerB = b.freezer || 'C1';
@@ -1014,7 +1021,6 @@
             }
             
             // Tri 2: par date si on est en mode 'date' ou par nom
-            const sortMode = document.getElementById('sortSelect').value;
             if (sortMode === 'name') return a.name.localeCompare(b.name);
             if (sortMode === 'drawer') return (a.drawer || '9').toString().localeCompare((b.drawer || '9').toString());
 
@@ -1024,107 +1030,92 @@
         });
 
         if (filtered.length === 0) {
-            listEl.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sec)">Rien ici 🕸️. Veuillez ajuster les filtres.</div>';
+            listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sec)">Rien ici 🕸️. Veuillez ajuster les filtres.</div>';
             return;
         }
 
+        // --- Construction du Tableau ---
+        let tableHTML = `
+            <table id="inventory-table">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th style="text-align:center;">Qté</th>
+                        <th>App.</th>
+                        <th>Tir.</th>
+                        <th>Statut / Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
         filtered.forEach(item => {
-            const li = document.createElement('li');
-            
-            let dateInfo = '';
-            let statusClass = 'fresh';
-            let progress = 100; 
+            let dateInfo = 'N/A';
+            let statusBadge = '';
+            let statusClass = 'status-neutral';
             
             if (currentView === 'freezer' && item.date) {
-                const dateDebut = item.id; 
-                const dateFin = new Date(item.date).getTime();
-                const now = Date.now();
-                
-                const totalDuration = dateFin - dateDebut;
-                const elapsedDuration = now - dateDebut;
-                
                 const diff = getDaysBetween(item.date, new Date());
                 const dateFr = new Date(item.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
                 
-                if (totalDuration > 0) {
-                    progress = Math.max(0, 100 - (elapsedDuration / totalDuration) * 100);
-                } else {
-                    progress = 0; 
+                if(diff < 0) { 
+                    statusClass = 'status-expired'; dateInfo = `Exp. (${dateFr})`;
+                } else if(diff < 30) { 
+                    statusClass = 'status-soon'; dateInfo = `J-${diff} (${dateFr})`;
+                } else { 
+                    statusClass = 'status-fresh'; dateInfo = `J+${diff} (${dateFr})`;
                 }
                 
-                if(diff < 0) { 
-                    statusClass = 'expired'; dateInfo = `⚠️ Exp. (${dateFr})`; progress = 0;
-                } else if(diff < 30) { 
-                    statusClass = 'soon'; dateInfo = `🕒 J-${diff} (${dateFr})`;
-                } else { 
-                    dateInfo = `📅 ${dateFr} (J+${diff})`;
-                }
+                statusBadge = `<span class="date-status-badge ${statusClass}">${dateInfo}</span>`;
+            } else if (currentView === 'shopping') {
+                 statusBadge = `<span class="date-status-badge status-neutral">À acheter</span>`;
+            } else {
+                 statusBadge = `<span class="date-status-badge status-neutral">N/A</span>`;
             }
+            
+            const freezerDisplay = item.freezer && item.freezer !== '?' ? item.freezer : '';
+            const drawerDisplay = item.drawer && item.drawer !== '?' ? item.drawer : '';
 
-            li.className = `item-card ${statusClass}`;
-            
-            const recipeLink = `https://www.marmiton.org/recettes/recherche.aspx?aqt=${encodeURIComponent(item.name)}`;
-            
             let mainActionBtn = '';
             if (currentView === 'freezer') {
-                mainActionBtn = `<button class="tool-btn btn-shop" onclick="moveToShop(${item.id})" title="Envoyer liste courses">🛒 >List</button>`;
+                mainActionBtn = `<button class="tool-btn" onclick="moveToShop(${item.id})" title="Envoyer liste courses">🛒</button>`;
             } else {
-                mainActionBtn = `<button class="tool-btn btn-shop" onclick="restoreToFreezer(${item.id})" title="Remettre au congélo">❄️ >Congélo</button>`;
+                mainActionBtn = `<button class="tool-btn" onclick="restoreToFreezer(${item.id})" title="Remettre au congélo">❄️</button>`;
             }
 
-            // Badges
-            const freezerBadge = (currentView === 'freezer' && item.freezer && item.freezer !== '?') 
-                ? `<span class="badge freezer-badge">${item.freezer}</span>` : '';
-
-            const drawerBadge = (currentView === 'freezer' && item.drawer && item.drawer !== '?') 
-                ? `<span class="badge drawer-badge">Tir. ${item.drawer}</span>` : '';
-
-            // Rendu simplifié pour le mode lecture
-            if (readModeActive) {
-                li.innerHTML = `
-                    <div class="item-left">
-                        <div class="category-icon">${icons[item.category] || '🧊'}</div>
-                        <div class="item-info">
-                            <h3>${item.name}</h3>
-                            <div class="meta-info">
-                                ${freezerBadge} ${drawerBadge}
-                            </div>
-                        </div>
+            let actionsHTML = '';
+            if (!readModeActive) {
+                actionsHTML = `
+                    <div class="table-actions">
+                        <button class="qty-btn btn-minus" onclick="updateQty(${item.id}, -1)">-</button>
+                        <span class="table-qty-display" style="display:none;">${item.qty}</span> 
+                        <button class="qty-btn btn-plus" onclick="updateQty(${item.id}, 1)">+</button>
+                        <button class="tool-btn" onclick="startEdit(${item.id})" title="Éditer">✏️</button>
+                        ${mainActionBtn}
+                        <a href="https://www.marmiton.org/recettes/recherche.aspx?aqt=${encodeURIComponent(item.name)}" target="_blank" class="tool-btn" title="Recette">👨‍🍳</a>
                     </div>
-                    <span class="qty-display">${item.qty}</span>
                 `;
             } else {
-                // Rendu détaillé (mode normal)
-                li.innerHTML = `
-                    <div class="item-left">
-                        <div class="category-icon">${icons[item.category] || '🧊'}</div>
-                        <div class="item-info">
-                            <h3>${item.name}</h3>
-                            <div class="meta-info">
-                                ${freezerBadge} ${drawerBadge}
-                                <span class="date-text">${dateInfo}</span>
-                            </div>
-                            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%;"></div></div>
-                            <div class="card-tools">
-                                <button class="tool-btn btn-edit" onclick="startEdit(${item.id})">✏️ Éditer</button>
-                                <a href="${recipeLink}" target="_blank" class="tool-btn">👨‍🍳 Recette</a>
-                                ${mainActionBtn}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="actions-right">
-                        <div class="qty-controls">
-                            <button class="qty-btn btn-minus" onclick="updateQty(${item.id}, -1)">-</button>
-                            <span class="qty-display">${item.qty}</span>
-                            <button class="qty-btn btn-plus" onclick="updateQty(${item.id}, 1)">+</button>
-                        </div>
-                    </div>
-                `;
+                 // Mode Lecture: juste la quantité
+                 actionsHTML = `<div class="table-actions"><span class="table-qty-display">${item.qty}</span></div>`;
             }
-            
-            listEl.appendChild(li);
+
+
+            tableHTML += `
+                <tr data-id="${item.id}" class="${currentView === 'freezer' ? statusClass.replace('status-', '') : ''}">
+                    <td>${icons[item.category] || '🧊'} ${item.name}</td>
+                    <td style="text-align:center;">${item.qty}</td>
+                    <td>${freezerDisplay}</td>
+                    <td>${drawerDisplay}</td>
+                    <td>${statusBadge}</td>
+                    <td>${actionsHTML}</td>
+                </tr>
+            `;
         });
+        
+        tableHTML += `</tbody></table>`;
+        listContainer.innerHTML = tableHTML;
     }
 
     // --- Fonctions Système (Impression & Backup) ---
@@ -1135,12 +1126,12 @@
             inventory: inventory, 
             shoppingList: shoppingList, 
             historyStack: historyStack,
-            version: 13 
+            version: 14 
         };
         const dataStr = JSON.stringify(data);
         const link = document.createElement('a');
         link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        link.download = `congelo_backup_V13_${new Date().toISOString().slice(0,10)}.json`;
+        link.download = `congelo_backup_V14_${new Date().toISOString().slice(0,10)}.json`;
         link.click();
     }
 
