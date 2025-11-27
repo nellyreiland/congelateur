@@ -3,266 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Congélo V12 (Multi-Appareil) ❄️📦</title>
+    <title>Mon Congélo V13 (FULL FEATURES) 🎤📦</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0288d1">
     <link rel="apple-touch-icon" href="icon-192.png">
     
     <style>
+        /* --- VARIABLES COULEURS --- */
         :root {
-            --primary: #0288d1;
-            --bg: #f0f4f8;
-            --card-bg: #ffffff;
+            --primary: #0288d1; /* Bleu principal */
+            --bg: #f0f4f8; /* Arrière-plan clair */
+            --card-bg: #ffffff; /* Fond des cartes clair */
             --text: #333;
-            --danger: #e53935;
-            --success: #43a047;
-            --warning: #fdd835;
+            --text-sec: #666;
+            --border: #ddd;
+            --danger: #e53935; /* Rouge (Périmé) */
+            --success: #43a047; /* Vert (Frais) */
+            --warning: #fdd835; /* Jaune (Alerte) */
             --drawer-tag: #5c6bc0;
             --freezer-tag: #00838f; /* Nouvelle couleur pour l'appareil */
+            --shadow: 0 2px 5px rgba(0,0,0,0.05);
+            --danger-light: #ffcdd2;
+            --success-light: #c8e6c9;
         }
 
+        [data-theme="dark"] {
+            --primary: #4fc3f7;
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #e0e0e0;
+            --text-sec: #aaaaaa;
+            --border: #333;
+            --shadow: 0 2px 5px rgba(0,0,0,0.3);
+            --drawer-tag: #3949ab;
+            --freezer-tag: #00acc1;
+            --danger-light: #4c1111;
+            --success-light: #153c15;
+        }
+
+        /* --- STYLES GENERAUX --- */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 15px;
-            padding-bottom: 80px;
+            padding: 10px;
+            padding-bottom: 90px;
+            transition: background 0.3s, color 0.3s;
         }
 
         .container { max-width: 600px; margin: 0 auto; }
 
-        h1 { text-align: center; color: var(--primary); margin-bottom: 20px; }
+        /* --- En-tête & Compteurs --- */
+        header { margin-bottom: 15px; }
 
-        /* --- Zone Recherche & Filtres --- */
-        .tools-area {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        h1 { margin: 0; font-size: 1.5rem; color: var(--primary); }
+        .theme-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text); }
+
+        .stats-bar {
+            display: flex; justify-content: space-between; margin-top: 10px;
+            font-size: 0.9rem; font-weight: bold;
+        }
+        .stat-item { padding: 5px 10px; border-radius: 8px; flex: 1; text-align: center; margin: 0 5px; }
+        .stat-total { background-color: var(--card-bg); color: var(--text); }
+        .stat-alert { background-color: var(--danger-light); color: var(--danger); }
+
+        /* --- Navigation --- */
+        .view-toggle {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .search-box {
-            position: relative;
-            width: 100%;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 12px 12px 12px 40px;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.2rem;
-            color: #777;
-        }
-
-        .filters-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap; 
-        }
-
-        .filter-select {
-            flex: 1;
-            min-width: 120px; 
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            font-size: 0.9rem;
-        }
-
-        /* --- Formulaire Ajout --- */
-        .add-form {
             background: var(--card-bg);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            border-top: 4px solid var(--primary);
+            border-radius: 20px;
+            padding: 2px;
+            border: 1px solid var(--border);
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        .view-btn { padding: 8px 15px; border: none; background: transparent; color: var(--text-sec); cursor: pointer; border-radius: 18px; font-weight: bold; font-size: 0.9rem; }
+        .view-btn.active { background: var(--primary); color: white; }
+
+        /* --- Outils & Filtres --- */
+        .tools-area {
+            background: var(--card-bg); padding: 12px; border-radius: 12px;
+            box-shadow: var(--shadow); margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;
         }
 
-        input, select {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            flex: 1;
-            font-size: 16px;
-        }
-
-        .input-mini { flex: 0 0 60px; min-width: 50px; }
-        
-        /* Nouvelle ligne pour les champs de localisation (freezer + drawer) */
-        .location-row { display: flex; flex-basis: 100%; gap: 8px; }
-
-
-        button#add-btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            flex-basis: 100%;
-            font-size: 1rem;
+        .filters-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
+        .filter-select, .filter-btn {
+            padding: 8px; border: 1px solid var(--border); border-radius: 8px;
+            background-color: var(--bg); color: var(--text); font-size: 0.85rem; flex-shrink: 0;
             cursor: pointer;
         }
+        .filter-btn.active { background-color: var(--warning); color: var(--text); border-color: var(--warning); }
+        .hidden-in-shopping { display: block; }
+        .shopping-mode .hidden-in-shopping { display: none; }
+
+        /* --- Formulaire --- */
+        .add-form {
+            background: var(--card-bg); padding: 12px; border-radius: 12px;
+            box-shadow: var(--shadow); display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+            border-left: 5px solid var(--primary); position: relative;
+        }
+        .add-form.editing { border-left-color: var(--warning); }
+
+        input, select {
+            padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+            flex: 1; font-size: 16px; background: var(--bg); color: var(--text);
+            box-sizing: border-box; 
+        }
+        
+        #itemNameContainer { display: flex; flex: 2; gap: 5px; position: relative; } 
+        
+        .input-mini { flex: 0 0 60px; min-width: 50px; }
+        
+        .qty-input-group { display: flex; flex: 1; gap: 5px; }
+        .qty-input-group input { flex: 1; }
+        .qty-input-group button { 
+            flex: 0 0 35px; background: var(--success-light); color: var(--success); 
+            border: 1px solid var(--success); border-radius: 8px; cursor: pointer; font-weight: bold;
+        }
+        
+        /* Bouton micro */
+        #voiceInputBtn { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            font-size: 1rem; 
+            cursor: pointer; 
+            flex-shrink: 0; 
+            width: 35px; 
+            padding: 0; 
+            margin: 0; 
+            align-self: stretch;
+        }
+
+        .form-row-full { display: flex; flex-basis: 100%; gap: 8px; }
+
+        button.action-btn {
+            background-color: var(--primary); color: white; border: none;
+            padding: 10px; border-radius: 8px; font-weight: bold;
+            flex-basis: 100%; cursor: pointer;
+        }
+        
+        button.cancel-btn {
+            background-color: var(--text-sec); color: white; border: none;
+            padding: 10px; border-radius: 8px; flex: 1; display: none;
+        }
+        
+        /* --- Autocomplétion --- */
+        .autocomplete-list {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background-color: var(--card-bg); border: 1px solid var(--border);
+            border-top: none; z-index: 10; border-radius: 0 0 8px 8px;
+            max-height: 200px; overflow-y: auto; box-shadow: var(--shadow);
+            margin-top: -1px; 
+        }
+        .autocomplete-item {
+            padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border);
+        }
+        .autocomplete-item:last-child { border-bottom: none; }
+        .autocomplete-item:hover, .autocomplete-item.active { background-color: var(--bg); }
+
 
         /* --- Liste --- */
         ul { list-style: none; padding: 0; }
 
         .item-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 6px solid #ddd;
+            background: var(--card-bg); border-radius: 12px; padding: 10px;
+            margin-bottom: 10px; box-shadow: var(--shadow); display: flex;
+            justify-content: space-between; align-items: center;
+            border-left: 5px solid var(--border); position: relative;
         }
 
-        .item-left { display: flex; align-items: center; gap: 12px; flex: 1; }
-
-        .category-icon {
-            font-size: 1.8rem;
-            background: #f5f5f5;
-            width: 45px;
-            height: 45px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .item-info h3 { margin: 0; font-size: 1.1rem; color: #222; }
+        .item-left { display: flex; align-items: center; gap: 10px; flex: 1; overflow: hidden; }
+        .category-icon { font-size: 1.5rem; background: var(--bg); width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%; flex-shrink: 0; }
+        .item-info { min-width: 0; }
+        .item-info h3 { margin: 0; font-size: 1rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .meta-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 4px;
-            flex-wrap: wrap;
-        }
-
-        .date-text { font-size: 0.85rem; color: #666; }
+        .meta-info { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 0.8rem; color: var(--text-sec); }
         
         .badge { /* Base pour les badges */
-            font-size: 0.75rem;
-            padding: 2px 6px;
+            font-size: 0.7rem;
+            padding: 2px 5px;
             border-radius: 4px;
             font-weight: bold;
             color: white;
             flex-shrink: 0;
         }
-        
-        .drawer-badge {
-            background-color: var(--drawer-tag);
-        }
-        
-        .freezer-badge { /* Nouveau style pour l'appareil */
-            background-color: var(--freezer-tag); 
-        }
+        .drawer-badge { background-color: var(--drawer-tag); }
+        .freezer-badge { background-color: var(--freezer-tag); } /* Badge Congélo */
 
-        /* --- Contrôles Droite (Boutons) --- */
-        .actions-right {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 5px;
-        }
 
+        /* --- Barres de Progression --- */
+        .progress-bar {
+            height: 4px; background: var(--border); border-radius: 2px;
+            margin-top: 4px; width: 100%; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; transition: width 0.3s;
+        }
+        .fresh .progress-fill { background-color: var(--success); }
+        .soon .progress-fill { background-color: var(--warning); }
+        .expired .progress-fill { background-color: var(--danger); }
+        .shopping-mode .progress-bar { display: none; }
+
+
+        /* --- Contrôles Item --- */
+        .actions-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
         .qty-controls {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: #f9f9f9;
-            padding: 4px;
-            border-radius: 8px;
-            border: 1px solid #eee;
+            display: flex; align-items: center; gap: 2px; background: var(--bg); padding: 2px; border-radius: 6px;
         }
+        .qty-btn { width: 24px; height: 24px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-minus { background: var(--danger-light); color: var(--danger); }
+        .btn-plus { background: var(--success-light); color: var(--success); }
+        .qty-display { font-weight: bold; min-width: 18px; text-align: center; font-size: 0.85rem; color: var(--text); }
         
-        .qty-btn {
-            width: 28px; height: 28px; border: none; border-radius: 6px;
-            font-weight: bold; font-size: 1.1rem; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .btn-minus { background: #ffcdd2; color: #c62828; }
-        .btn-plus { background: #c8e6c9; color: #2e7d32; }
-        .qty-display { font-weight: bold; min-width: 20px; text-align: center; font-size: 0.9rem; }
-
-        /* Bouton Recette */
-        .recipe-btn {
-            background-color: #fff3e0;
-            color: #e65100;
-            border: 1px solid #ffe0b2;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .recipe-btn:hover { background-color: #ffe0b2; }
+        .card-tools { display: flex; gap: 5px; margin-top: 2px; }
+        .tool-btn { font-size: 0.8rem; padding: 3px 6px; border-radius: 4px; text-decoration: none; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+        .btn-edit { color: var(--primary); border-color: var(--primary); }
+        .btn-shop { color: var(--warning); border-color: var(--warning); } 
 
         /* --- Codes Couleurs --- */
-        .expired { border-left-color: var(--danger); background-color: #fffafa; }
+        .expired { border-left-color: var(--danger); }
         .soon { border-left-color: var(--warning); }
         .fresh { border-left-color: var(--success); }
 
-        /* --- Backup --- */
-        .backup-section {
-            text-align: center; margin-top: 40px; padding: 20px;
-            background: #e0e0e0; border-radius: 12px;
+        /* --- Liste Courses Spécifique --- */
+        .shopping-mode .add-form { border-left-color: var(--warning); }
+        /* Cache les filtres de localisation et d'alerte dans la vue Courses */
+        .shopping-mode #filterDrawer, .shopping-mode #filterFreezer, .shopping-mode #filterAlert, .shopping-mode #readModeToggle { display: none; } 
+        .shopping-mode .stat-alert { display: none; }
+        .shopping-mode .stat-total { background-color: var(--warning); color: var(--text); }
+        .shopping-mode .item-card { border-left-color: var(--warning); opacity: 0.9; }
+
+        /* --- Mode Lecture Spécifique (Maison/Extérieur) --- */
+        .read-mode .item-card { padding: 8px 10px; align-items: center; }
+        .read-mode .actions-right, 
+        .read-mode .card-tools, 
+        .read-mode .progress-bar, 
+        .read-mode .date-text, 
+        .read-mode .qty-controls {
+            display: none !important; 
         }
-        .backup-btn {
-            padding: 8px 15px; margin: 5px; border: none;
-            border-radius: 6px; cursor: pointer; background: #555; color: white;
+        .read-mode .qty-display {
+            display: block !important; 
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text);
+            padding: 0 5px;
         }
+        .read-mode .item-info h3 { font-size: 1.1rem; }
+        .read-mode .meta-info { font-size: 0.9rem; margin-top: 0; }
+        .read-mode .category-icon { width: 35px; height: 35px; font-size: 1.2rem; }
+
+
+        /* --- Historique --- */
+        #history-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--card-bg); padding: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: none; justify-content: space-between; align-items: center;
+            border-top: 1px solid var(--border); z-index: 20;
+        }
+        #history-bar.show { display: flex; }
+        #history-bar button {
+            background: var(--primary); color: white; border: none; padding: 8px 12px;
+            border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+        #history-message { font-size: 0.9rem; }
     </style>
 </head>
-<body>
+<body id="body">
 
 <div class="container">
-    <h1>❄️ Mon Congélo</h1>
+    <header>
+        <div class="header-top">
+            <h1>❄️ Mon Congélo</h1>
+            <button class="theme-btn" onclick="toggleTheme()" id="themeIcon">🌙</button>
+        </div>
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item stat-total" id="totalItems">0 articles</div>
+            <div class="stat-item stat-alert" id="alertItems">0 en alerte</div>
+        </div>
+    </header>
 
-    <div class="tools-area">
+    <div class="view-toggle">
+        <button class="view-btn active" id="btn-freezer" onclick="switchView('freezer')">🧊 Stock</button>
+        <button class="view-btn" id="btn-shopping" onclick="switchView('shopping')">🛒 Courses</button>
+    </div>
+
+    <div class="tools-area" id="tools-panel">
         <div class="search-box">
-            <span class="search-icon">🔎</span>
             <input type="text" id="searchInput" placeholder="Rechercher..." onkeyup="renderList()">
         </div>
         
         <div class="filters-row">
-            <select id="filterFreezer" class="filter-select" onchange="renderList()">
+            <select id="sortSelect" class="filter-select" onchange="renderList()">
+                <option value="date">📅 Date (Péremption)</option>
+                <option value="drawer">📂 Tiroir</option>
+                <option value="name">🔤 Nom (A-Z)</option>
+            </select>
+            
+            <select id="filterFreezer" class="filter-select hidden-in-shopping" onchange="renderList()">
                 <option value="all">Tous Appareils</option>
                 <option value="C1">C1 (Principal)</option>
                 <option value="C2">C2 (Secondaire)</option>
                 <option value="C3">C3 (Tiers)</option>
             </select>
-            
+
             <select id="filterCategory" class="filter-select" onchange="renderList()">
-                <option value="all">Toutes Catégories</option>
+                <option value="all">Tout</option>
                 <option value="viande">🥩 Viandes</option>
                 <option value="legume">🥦 Légumes</option>
                 <option value="plat">🍲 Plats</option>
@@ -271,20 +321,23 @@
                 <option value="autre">🧊 Autre</option>
             </select>
 
-            <select id="filterDrawer" class="filter-select" onchange="renderList()">
-                <option value="all">Tous Tiroirs</option>
-                <option value="1">Tiroir 1</option>
-                <option value="2">Tiroir 2</option>
-                <option value="3">Tiroir 3</option>
-                <option value="4">Tiroir 4</option>
-                <option value="5">Tiroir 5</option>
-                <option value="6">Tiroir 6</option>
-                <option value="?">Non rangé (?)</option>
+            <select id="filterDrawer" class="filter-select hidden-in-shopping" onchange="renderList()">
+                <option value="all">Tiroirs : Tous</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
             </select>
+            
+            <button id="filterAlert" class="filter-btn hidden-in-shopping" onclick="toggleAlertFilter()">🚨 Alerte</button>
+            <button id="printBtn" class="filter-btn" onclick="printInventory()">🖨️ Imprimer</button>
+            <button id="readModeToggle" class="filter-btn hidden-in-shopping" onclick="toggleReadMode()">👀 Mode Lecture</button>
         </div>
     </div>
 
-    <div class="add-form">
+    <div class="add-form" id="mainForm">
         <select id="itemCategory" class="input-mini">
             <option value="viande">🥩</option>
             <option value="legume">🥦</option>
@@ -294,115 +347,800 @@
             <option value="autre">🧊</option>
         </select>
         
-        <input type="text" id="itemName" placeholder="Produit..." required>
-        
-        <div class="location-row">
-            <select id="itemFreezer" style="flex: 2;">
+        <div id="itemNameContainer">
+            <input type="text" id="itemName" placeholder="Produit..." oninput="showAutocomplete()" onkeydown="handleAutocompleteKey(event)" required style="flex-grow: 1;">
+            <button id="voiceInputBtn" type="button" onclick="startVoiceInput()" title="Saisie Vocale">🎤</button>
+            <div class="autocomplete-list" id="autocompleteList"></div>
+        </div>
+
+        <div class="location-row form-row-full hidden-in-shopping">
+             <select id="itemFreezer" style="flex: 2;">
                 <option value="C1">C1 (Principal)</option>
                 <option value="C2">C2 (Secondaire)</option>
                 <option value="C3">C3 (Tiers)</option>
             </select>
             <input type="number" id="itemDrawer" placeholder="Tir." class="input-mini" min="1" max="9">
         </div>
+
+        <div class="qty-input-group">
+            <input type="number" id="itemQty" placeholder="Qté" value="1" min="1">
+            <button onclick="changeQtyInput(1)">+1</button>
+            <button onclick="changeQtyInput(5)">+5</button>
+        </div>
         
-        <input type="number" id="itemQty" placeholder="Qté" value="1" class="input-mini">
-        <input type="date" id="itemDate">
+        <div class="form-row-full date-input-group hidden-in-shopping" style="gap: 8px;">
+            <select id="itemDateMode" style="flex: 1;" onchange="updateDateFromMode()">
+                <option value="6m">📅 Durée : 6 mois</option>
+                <option value="3m">📅 Durée : 3 mois</option>
+                <option value="1y">📅 Durée : 1 an</option>
+                <option value="custom">📅 Date précise...</option>
+            </select>
+            <input type="date" id="itemDateCustom" style="flex: 1; display: none;">
+        </div>
         
-        <button id="add-btn" onclick="addItem()">Ajouter</button>
+        <div class="form-row-full">
+            <button id="submit-btn" class="action-btn" onclick="handleFormSubmit()">Ajouter</button>
+            <button id="cancel-btn" class="cancel-btn" onclick="resetForm()">Annuler</button>
+        </div>
     </div>
 
     <ul id="inventory-list"></ul>
-
-    <div class="backup-section">
-        <h3>Sauvegarde</h3>
-        <button class="backup-btn" onclick="exportData()">📥 Sauvegarder</button>
-        <button class="backup-btn" onclick="document.getElementById('fileInput').click()">📤 Restaurer</button>
+    
+    <div style="text-align:center; margin-top:30px; opacity:0.6; font-size:0.8rem;">
+        <span onclick="exportData()">💾 Sauvegarder</span> | 
+        <span onclick="document.getElementById('fileInput').click()">📂 Restaurer</span>
         <input type="file" id="fileInput" style="display: none;" onchange="importData(this)">
     </div>
 </div>
 
+<div id="history-bar">
+    <span id="history-message"></span>
+    <button onclick="restoreLastDeleted()">↩️ Annuler la suppression</button>
+</div>
+
 <script>
-    // --- Initialisation ---
-    // Clé de sauvegarde mise à jour pour éviter les conflits avec les anciennes versions (Utilisation d'une nouvelle clé V12)
-    let inventory = JSON.parse(localStorage.getItem('freezerV12')) || []; 
-    const listElement = document.getElementById('inventory-list');
+    // --- Initialisation des Données ---
+    let inventory = JSON.parse(localStorage.getItem('freezerDataV13')) || []; 
+    let shoppingList = JSON.parse(localStorage.getItem('shoppingDataV13')) || [];
+    let historyStack = JSON.parse(localStorage.getItem('historyDataV13')) || []; 
     
-    // Si la V12 est vide, tente de migrer les anciennes données V6/V5
-    if (inventory.length === 0) {
-        const legacyData = localStorage.getItem('freezerV6') || localStorage.getItem('freezerV5');
-        if (legacyData) {
-            try {
-                // Tente de parser, en assumant que c'est un tableau
-                inventory = JSON.parse(legacyData).map(item => ({
-                    ...item,
-                    freezer: 'C1' // Migration : assigne C1 par défaut
-                }));
-            } catch (e) {
-                console.error("Erreur de parsing des données héritées", e);
-            }
+    let currentView = localStorage.getItem('currentViewV13') || 'freezer';
+    let editingId = null;
+    let alertFilterActive = false;
+    let autocompleteIndex = -1;
+    let readModeActive = false; 
+
+    const icons = { viande: '🥩', legume: '🥦', plat: '🍲', sucre: '🍦', pain: '🥖', autre: '🧊' };
+    
+    const nameToCategoryMap = {
+        'boeuf': 'viande', 'steak': 'viande', 'porc': 'viande', 'poulet': 'viande', 'dinde': 'viande',
+        'poisson': 'viande', 'saumon': 'viande', 'crevette': 'viande', 
+        'soupe': 'plat', 'pizza': 'plat', 'lasagne': 'plat', 'plat': 'plat', 'quiche': 'plat', 'pâte': 'plat',
+        'glace': 'sucre', 'sorbet': 'sucre', 'dessert': 'sucre', 'gateau': 'sucre', 'tarte': 'sucre',
+        'brocoli': 'legume', 'épinard': 'legume', 'légume': 'legume', 'haricot': 'legume', 'frite': 'legume',
+        'pain': 'pain', 'baguette': 'pain', 'viennoiserie': 'pain', 'brioche': 'pain',
+    };
+    
+    // --- Migration des anciennes données (pour éviter la perte) ---
+    function migrateData(oldData, targetKey) {
+        if (!oldData) return [];
+        let data = [];
+        try {
+            data = JSON.parse(oldData);
+            // Assure que les anciens items aient 'freezer: C1'
+            return data.map(item => ({
+                ...item,
+                freezer: item.freezer || 'C1' 
+            }));
+        } catch(e) {
+            console.error(`Erreur de migration pour ${targetKey}`, e);
+            return [];
         }
     }
 
+    if (inventory.length === 0) {
+        // Tente de migrer les données de la V12/V11
+        inventory = migrateData(localStorage.getItem('freezerV12') || localStorage.getItem('freezerData'), 'freezer');
+        shoppingList = migrateData(localStorage.getItem('shoppingData'), 'shopping');
+        historyStack = migrateData(localStorage.getItem('historyData'), 'history');
+    }
+    
+    function suggestCategory(name) {
+        const lowerName = name.toLowerCase();
+        for (const keyword in nameToCategoryMap) {
+            if (lowerName.includes(keyword)) {
+                return nameToCategoryMap[keyword];
+            }
+        }
+        return null; 
+    }
 
-    const icons = { viande: '🥩', legume: '🥦', plat: '🍲', sucre: '🍦', pain: '🥖', autre: '🧊' };
+    // --- Fonctions Utilitaires Date ---
+    const getDaysBetween = (date1, date2) => Math.ceil((new Date(date1) - new Date(date2)) / (86400000));
+    
+    function calculateFinalDate(mode, customDate = null) {
+        if (mode === 'custom' && customDate) {
+            return customDate; 
+        }
+        
+        const today = new Date();
+        let duration = 0; // Durée en mois
 
-    function save() {
-        // Enregistrement sur la nouvelle clé V12
-        localStorage.setItem('freezerV12', JSON.stringify(inventory));
+        if (mode === '3m') duration = 3;
+        else if (mode === '6m') duration = 6;
+        else if (mode === '1y') duration = 12;
+
+        if (duration > 0) {
+            today.setMonth(today.getMonth() + duration);
+            return today.toISOString().split('T')[0];
+        }
+        
+        return null;
+    }
+
+    function updateDateFromMode() {
+        const mode = document.getElementById('itemDateMode').value;
+        const customInput = document.getElementById('itemDateCustom');
+        
+        if (mode === 'custom') {
+            customInput.style.display = 'block';
+            if (!editingId) customInput.value = ''; 
+            customInput.focus();
+        } else {
+            customInput.style.display = 'none';
+        }
+    }
+
+    function setDefaultDate() {
+        if (!editingId) {
+            document.getElementById('itemDateMode').value = '6m';
+            document.getElementById('itemDateCustom').style.display = 'none';
+            document.getElementById('itemDateCustom').value = ''; 
+        }
+    }
+    
+    // --- Mode Sombre ---
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.body.dataset.theme = savedTheme;
+    document.getElementById('themeIcon').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+    function toggleTheme() {
+        const newTheme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.body.dataset.theme = newTheme;
+        localStorage.setItem('theme', newTheme);
+        document.getElementById('themeIcon').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        renderStats();
+    }
+
+    // --- Saisie Vocale ---
+    let voiceRecognition;
+    if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+        voiceRecognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        voiceRecognition.lang = 'fr-FR';
+        voiceRecognition.interimResults = false;
+        voiceRecognition.maxAlternatives = 1;
+    }
+
+    function startVoiceInput() {
+        if (!voiceRecognition) {
+            alert("La saisie vocale n'est pas supportée par votre navigateur.");
+            return;
+        }
+        
+        const btn = document.getElementById('voiceInputBtn');
+        btn.textContent = '🔴';
+        
+        voiceRecognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            parseVoiceText(transcript);
+            btn.textContent = '🎤';
+            alert(`Commande vocale traitée : "${transcript}"`);
+        };
+        
+        voiceRecognition.onerror = (event) => {
+            console.error('Erreur vocale:', event.error);
+            btn.textContent = '🎤';
+            alert("Erreur de reconnaissance vocale.");
+        };
+
+        voiceRecognition.onend = () => {
+            btn.textContent = '🎤';
+        };
+
+        voiceRecognition.start();
+    }
+
+    function parseVoiceText(text) {
+        const lowerText = text.toLowerCase();
+        const numMap = {'un': 1, 'une': 1, 'deux': 2, 'trois': 3, 'quatre': 4, 'cinq': 5, 'six': 6, 'sept': 7, 'huit': 8, 'neuf': 9, 'dix': 10, 'douze': 12};
+        
+        // 1. Quantité
+        let qtyMatch = lowerText.match(/(\d+)/) || lowerText.match(/(un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)/);
+        let qty = 1;
+        if (qtyMatch) {
+            qty = parseInt(qtyMatch[0]) || numMap[qtyMatch[0]] || 1;
+            document.getElementById('itemQty').value = qty;
+        }
+        
+        // 2. Tiroir et Appareil (Tir. 2 dans C1/Principal)
+        let drawerMatch = lowerText.match(/tiroir\s?(\d+)/);
+        if (drawerMatch) {
+            document.getElementById('itemDrawer').value = drawerMatch[1];
+        }
+        let freezerMatch = lowerText.match(/(principal|secondaire|tiers|c1|c2|c3)/);
+        if (freezerMatch) {
+            const f = freezerMatch[1].toUpperCase().replace('PRINCIPAL', 'C1').replace('SECONDAIRE', 'C2').replace('TIERS', 'C3').replace('C', 'C');
+            document.getElementById('itemFreezer').value = f.length === 1 ? 'C1' : f;
+        }
+        
+        // 3. Durée
+        let durationMatch = lowerText.match(/(\d+|un|une|six|douze)\s?(mois|an|ans)/);
+        if (durationMatch) {
+            const valStr = durationMatch[1].toLowerCase();
+            const val = numMap[valStr] || parseInt(valStr) || 6;
+            const unit = durationMatch[2];
+            let mode = '6m'; 
+            if (unit.startsWith('an')) mode = '1y';
+            if (unit.startsWith('mois')) {
+                if (val === 3) mode = '3m';
+                if (val === 6) mode = '6m';
+                if (val === 12) mode = '1y';
+            }
+            document.getElementById('itemDateMode').value = mode;
+            updateDateFromMode(); 
+        }
+
+        // 4. Nom
+        let name = lowerText;
+        // Suppression des mots-clés
+        name = name.replace(/ajouter|mettre|j'ajoute|j'ai|tiroir\s?\d+|pour\s?\d+\s?(mois|an|ans)|(\d+)|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|principal|secondaire|tiers|c1|c2|c3/g, '').trim();
+        name = name.replace(/\s{2,}/g, ' ').trim(); 
+        name = name.charAt(0).toUpperCase() + name.slice(1); 
+        document.getElementById('itemName').value = name;
+        
+        selectAutocomplete(name); 
+    }
+    
+    // --- Mode Lecture ---
+    function toggleReadMode() {
+        readModeActive = !readModeActive;
+        const btn = document.getElementById('readModeToggle');
+        btn.classList.toggle('active', readModeActive);
+        btn.textContent = readModeActive ? '✅ Mode Lecture' : '👀 Mode Lecture';
+        document.body.classList.toggle('read-mode', readModeActive);
         renderList();
     }
 
-    function addItem() {
-        const name = document.getElementById('itemName').value;
+
+    // --- Sauvegarde ---
+    function save() {
+        localStorage.setItem('freezerDataV13', JSON.stringify(inventory));
+        localStorage.setItem('shoppingDataV13', JSON.stringify(shoppingList));
+        localStorage.setItem('historyDataV13', JSON.stringify(historyStack.slice(0, 5))); 
+        localStorage.setItem('currentViewV13', currentView);
+        renderList();
+        renderStats();
+    }
+    
+    // --- Historique ---
+    function pushToHistory(item, action = 'deleted') {
+        historyStack.unshift({ ...item, action, timestamp: Date.now(), view: currentView });
+        save();
+        showHistoryBar();
+    }
+
+    function showHistoryBar() {
+        const historyBar = document.getElementById('history-bar');
+        if (historyStack.length > 0) {
+            const last = historyStack[0];
+            historyBar.classList.add('show');
+            document.getElementById('history-message').textContent = `Dernier article supprimé : ${last.name} (${last.qty} unité(s)).`;
+        } else {
+            historyBar.classList.remove('show');
+        }
+    }
+
+    function restoreLastDeleted() {
+        if (historyStack.length === 0) return;
+        
+        const last = historyStack.shift();
+        
+        if (last.view === 'freezer') {
+            inventory.push(last);
+        } else {
+            shoppingList.push(last);
+        }
+        
+        alert(`"${last.name}" restauré dans votre ${last.view === 'freezer' ? 'stock.' : 'liste de courses.'}`);
+        save();
+        showHistoryBar();
+    }
+
+    // --- Saisie (Autocomplétion) ---
+    function getUniqueNames() {
+        const names = new Set();
+        inventory.forEach(item => names.add(item.name));
+        return Array.from(names);
+    }
+    
+    function getLastItemData(name) {
+        const lastItem = inventory.slice().reverse().find(item => item.name === name);
+        if (lastItem) {
+            return {
+                category: lastItem.category,
+                drawer: lastItem.drawer,
+                freezer: item.freezer // Récupère le congélateur
+            };
+        }
+        return null;
+    }
+
+    function showAutocomplete() {
+        const input = document.getElementById('itemName');
+        const listEl = document.getElementById('autocompleteList');
+        const value = input.value.toLowerCase();
+        listEl.innerHTML = '';
+        autocompleteIndex = -1;
+        
+        const suggestedCategory = suggestCategory(input.value);
+        if (suggestedCategory) {
+            document.getElementById('itemCategory').value = suggestedCategory;
+        }
+
+        if (value.length < 2) return;
+
+        const uniqueNames = getUniqueNames();
+        const suggestions = uniqueNames.filter(name => 
+            name.toLowerCase().includes(value)
+        ).slice(0, 5); 
+        
+        if (suggestions.length === 0) return;
+
+        suggestions.forEach((name, index) => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'autocomplete-item';
+            itemEl.textContent = name;
+            itemEl.onclick = () => selectAutocomplete(name);
+            itemEl.dataset.index = index;
+            listEl.appendChild(itemEl);
+        });
+    }
+
+    function handleAutocompleteKey(e) {
+        const listEl = document.getElementById('autocompleteList');
+        const items = listEl.querySelectorAll('.autocomplete-item');
+        if (items.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            autocompleteIndex = (autocompleteIndex + 1) % items.length;
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            autocompleteIndex = (autocompleteIndex - 1 + items.length) % items.length;
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (autocompleteIndex > -1) {
+                selectAutocomplete(items[autocompleteIndex].textContent);
+            } else {
+                handleFormSubmit(); 
+            }
+            return;
+        }
+        
+        items.forEach((item, index) => {
+            item.classList.toggle('active', index === autocompleteIndex);
+        });
+        if (autocompleteIndex > -1) items[autocompleteIndex].scrollIntoView({ block: "nearest" });
+    }
+
+    function selectAutocomplete(name) {
+        document.getElementById('itemName').value = name;
+        document.getElementById('autocompleteList').innerHTML = '';
+        autocompleteIndex = -1;
+        
+        const lastData = getLastItemData(name);
+        
+        if (lastData) {
+            document.getElementById('itemCategory').value = lastData.category;
+            if (lastData.drawer && lastData.drawer !== '?') {
+                document.getElementById('itemDrawer').value = lastData.drawer;
+            }
+            if (lastData.freezer) {
+                document.getElementById('itemFreezer').value = lastData.freezer;
+            }
+        } else {
+            const suggestedCategory = suggestCategory(name);
+            if (suggestedCategory) {
+                document.getElementById('itemCategory').value = suggestedCategory;
+            }
+            document.getElementById('itemDrawer').value = '';
+            document.getElementById('itemFreezer').value = 'C1';
+        }
+    }
+    
+    function changeQtyInput(amount) {
+        const qtyInput = document.getElementById('itemQty');
+        let currentQty = parseInt(qtyInput.value) || 0;
+        qtyInput.value = currentQty + amount;
+    }
+
+    // --- Gestion des Vues ---
+    function switchView(view) {
+        currentView = view;
+        document.getElementById('btn-freezer').classList.toggle('active', view === 'freezer');
+        document.getElementById('btn-shopping').classList.toggle('active', view === 'shopping');
+        document.body.classList.toggle('shopping-mode', view === 'shopping');
+        
+        document.getElementById('submit-btn').textContent = view === 'shopping' ? "Ajouter à la liste" : "Ajouter au congélo";
+        resetForm();
+        save(); 
+    }
+
+    function toggleAlertFilter() {
+        alertFilterActive = !alertFilterActive;
+        document.getElementById('filterAlert').classList.toggle('active', alertFilterActive);
+        renderList();
+    }
+
+    // --- Ajout / Édition ---
+    function handleFormSubmit() {
+        const name = document.getElementById('itemName').value.trim();
         const cat = document.getElementById('itemCategory').value;
         const qty = parseInt(document.getElementById('itemQty').value) || 1;
-        const date = document.getElementById('itemDate').value;
+        
+        // Champs Spécifiques au Congélateur (masqués en mode courses)
+        const dateMode = document.getElementById('itemDateMode').value;
+        const customDate = document.getElementById('itemDateCustom').value;
+        const finalDate = currentView === 'freezer' ? calculateFinalDate(dateMode, customDate) : null;
+        
         const drawer = document.getElementById('itemDrawer').value;
-        const freezer = document.getElementById('itemFreezer').value; // NOUVEAU: Appareil
+        const freezer = document.getElementById('itemFreezer').value;
 
-        if (!name.trim()) return alert('Nom manquant !');
+        if (!name) return alert('Nom manquant !');
 
-        inventory.push({ 
-            id: Date.now(), 
+        const targetArray = currentView === 'freezer' ? inventory : shoppingList;
+        
+        // Crée l'objet de base
+        const newItem = { 
             name, 
             category: cat, 
             qty, 
-            date, 
-            drawer: drawer || '?',
-            freezer: freezer || 'C1' // Enregistre l'appareil
-        });
+            date: finalDate, 
+            drawer: currentView === 'freezer' ? (drawer || '?') : '?', 
+            freezer: currentView === 'freezer' ? (freezer || 'C1') : '?'
+        };
+
+        if (editingId) {
+            // Modification
+            const index = targetArray.findIndex(i => i.id === editingId);
+            if (index !== -1) {
+                targetArray[index] = { ...targetArray[index], ...newItem };
+            }
+        } else {
+            // Création
+            targetArray.push({ id: Date.now(), ...newItem });
+        }
+
         save();
-        
-        document.getElementById('itemName').value = '';
-        document.getElementById('itemQty').value = '1'; 
-        // Réinitialisation des champs pour la prochaine saisie
-        document.getElementById('itemFreezer').value = 'C1'; 
-        document.getElementById('itemDrawer').value = ''; 
-        document.getElementById('itemDate').value = '';
-        document.getElementById('itemName').focus();
+        resetForm();
     }
 
+    function startEdit(id) {
+        const targetArray = currentView === 'freezer' ? inventory : shoppingList;
+        const item = targetArray.find(i => i.id === id);
+        if (!item) return;
+
+        document.getElementById('itemName').value = item.name;
+        document.getElementById('itemCategory').value = item.category;
+        document.getElementById('itemQty').value = item.qty;
+        
+        if (currentView === 'freezer') {
+            document.getElementById('itemDrawer').value = item.drawer !== '?' ? item.drawer : '';
+            document.getElementById('itemFreezer').value = item.freezer || 'C1';
+            
+            document.getElementById('itemDateMode').value = 'custom';
+            document.getElementById('itemDateCustom').style.display = 'block';
+            document.getElementById('itemDateCustom').value = item.date || '';
+        }
+
+        editingId = id;
+        document.getElementById('submit-btn').textContent = "Modifier";
+        document.getElementById('cancel-btn').style.display = 'inline-block';
+        document.getElementById('mainForm').classList.add('editing');
+        document.getElementById('mainForm').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetForm() {
+        document.getElementById('itemName').value = '';
+        document.getElementById('itemQty').value = '1';
+        document.getElementById('itemDrawer').value = '';
+        document.getElementById('itemFreezer').value = 'C1'; // Par défaut
+        
+        document.getElementById('autocompleteList').innerHTML = ''; 
+        setDefaultDate(); 
+        
+        editingId = null;
+        
+        const btnText = currentView === 'freezer' ? "Ajouter au congélo" : "Ajouter à la liste";
+        document.getElementById('submit-btn').textContent = btnText;
+        document.getElementById('cancel-btn').style.display = 'none';
+        document.getElementById('mainForm').classList.remove('editing');
+    }
+
+    // --- Actions Item ---
     function updateQty(id, change) {
-        const index = inventory.findIndex(i => i.id === id);
+        const targetArray = currentView === 'freezer' ? inventory : shoppingList;
+        const index = targetArray.findIndex(i => i.id === id);
         if (index === -1) return;
         
-        inventory[index].qty += change;
+        targetArray[index].qty += change;
 
-        if (inventory[index].qty <= 0) {
-            if (confirm(`Supprimer ${inventory[index].name} ?`)) {
-                inventory.splice(index, 1);
+        if (targetArray[index].qty <= 0) {
+            const itemToDelete = targetArray[index];
+
+            if (currentView === 'freezer') {
+                if (confirm(`Plus de ${itemToDelete.name}. Ajouter à la liste de courses ?`)) {
+                    // Conserve les champs essentiels pour l'achat
+                    let item = { id: Date.now(), name: itemToDelete.name, category: itemToDelete.category, qty: 1, drawer: '?', freezer: '?' }; 
+                    shoppingList.push(item);
+                } else if(confirm("Supprimer définitivement ?")) {
+                    pushToHistory(itemToDelete); 
+                } else {
+                    targetArray[index].qty = 1; 
+                    save(); return;
+                }
             } else {
-                inventory[index].qty = 1; 
+                pushToHistory(itemToDelete); 
             }
+            targetArray.splice(index, 1);
         }
         save();
     }
 
+    function moveToShop(id) {
+        const index = inventory.findIndex(i => i.id === id);
+        if (index === -1) return;
+        const item = inventory[index];
+        // Créer une nouvelle entrée dans la liste de courses
+        const newItem = { id: Date.now(), name: item.name, category: item.category, qty: 1, drawer: '?', freezer: '?' };
+        shoppingList.push(newItem);
+        
+        // Supprimer l'original
+        inventory.splice(index, 1);
+        save();
+    }
+
+    function restoreToFreezer(id) {
+        const index = shoppingList.findIndex(i => i.id === id);
+        if (index === -1) return;
+        const item = shoppingList[index];
+        
+        // Demande les informations de localisation/date
+        const freezer = prompt(`Congélateur pour ${item.name} ? (C1, C2, C3)`, 'C1') || "C1";
+        const drawer = prompt(`Tiroir pour ${item.name} ?`, "1") || "?";
+        
+        // Ajoute l'article restauré à l'inventaire avec une date par défaut (6 mois)
+        inventory.push({ 
+            ...item, 
+            freezer: freezer,
+            drawer: drawer,
+            date: calculateFinalDate('6m', null) 
+        });
+        
+        // Supprime de la liste de courses
+        shoppingList.splice(index, 1);
+        save();
+    }
+    
+    // --- Rendu ---
+    function renderStats() {
+        const total = inventory.length;
+        let alertCount = 0;
+        const today = new Date();
+
+        inventory.forEach(item => {
+            if (item.date) {
+                const diff = getDaysBetween(item.date, today);
+                if (diff < 30) {
+                    alertCount++;
+                }
+            }
+        });
+
+        const targetList = currentView === 'freezer' ? inventory : shoppingList;
+        document.getElementById('totalItems').textContent = `${targetList.length} article${targetList.length > 1 ? 's' : ''}`;
+        
+        const alertEl = document.getElementById('alertItems');
+        if (currentView === 'freezer') {
+            alertEl.textContent = `${alertCount} en alerte`;
+            alertEl.style.display = 'block';
+        } else {
+            alertEl.style.display = 'none';
+        }
+    }
+
+    function renderList() {
+        const listEl = document.getElementById('inventory-list');
+        listEl.innerHTML = '';
+        
+        const targetArray = currentView === 'freezer' ? inventory : shoppingList;
+        const searchVal = document.getElementById('searchInput').value.toLowerCase();
+        const catFilter = document.getElementById('filterCategory').value;
+        
+        // Filtres pour le Stock
+        const drawFilter = currentView === 'freezer' ? document.getElementById('filterDrawer').value : 'all';
+        const freezerFilter = currentView === 'freezer' ? document.getElementById('filterFreezer').value : 'all';
+
+        let filtered = targetArray.filter(item => {
+            const matchSearch = item.name.toLowerCase().includes(searchVal);
+            const matchCat = (catFilter === 'all' || item.category === catFilter);
+            
+            let matchDrawer = true;
+            let matchFreezer = true;
+            let matchAlert = true;
+
+            if (currentView === 'freezer') {
+                // Filtre Congélo
+                const itemFreezer = item.freezer || 'C1'; 
+                matchFreezer = (freezerFilter === 'all' || itemFreezer === freezerFilter);
+                
+                // Filtre Tiroir
+                const itemDrawer = item.drawer ? item.drawer.toString() : '?';
+                matchDrawer = (drawFilter === 'all' || itemDrawer === drawFilter);
+
+                // Filtre Alerte
+                if (alertFilterActive) {
+                    if (item.date) {
+                        const diff = getDaysBetween(item.date, new Date());
+                        matchAlert = (diff < 30); 
+                    } else {
+                        matchAlert = false; 
+                    }
+                }
+            }
+
+            return matchSearch && matchCat && matchDrawer && matchFreezer && matchAlert;
+        });
+
+        // Tri (par appareil en premier, puis par date)
+        filtered.sort((a, b) => {
+            if (currentView === 'freezer') {
+                // Tri 1: par appareil (C1, C2, C3)
+                const freezerA = a.freezer || 'C1';
+                const freezerB = b.freezer || 'C1';
+                if (freezerA !== freezerB) {
+                    return freezerA.localeCompare(freezerB);
+                }
+            }
+            
+            // Tri 2: par date si on est en mode 'date' ou par nom
+            const sortMode = document.getElementById('sortSelect').value;
+            if (sortMode === 'name') return a.name.localeCompare(b.name);
+            if (sortMode === 'drawer') return (a.drawer || '9').toString().localeCompare((b.drawer || '9').toString());
+
+            const dateA = a.date ? new Date(a.date) : new Date(8640000000000000); 
+            const dateB = b.date ? new Date(b.date) : new Date(8640000000000000); 
+            return dateA - dateB;
+        });
+
+        if (filtered.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sec)">Rien ici 🕸️. Veuillez ajuster les filtres.</div>';
+            return;
+        }
+
+        filtered.forEach(item => {
+            const li = document.createElement('li');
+            
+            let dateInfo = '';
+            let statusClass = 'fresh';
+            let progress = 100; 
+            
+            if (currentView === 'freezer' && item.date) {
+                const dateDebut = item.id; 
+                const dateFin = new Date(item.date).getTime();
+                const now = Date.now();
+                
+                const totalDuration = dateFin - dateDebut;
+                const elapsedDuration = now - dateDebut;
+                
+                const diff = getDaysBetween(item.date, new Date());
+                const dateFr = new Date(item.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
+                
+                if (totalDuration > 0) {
+                    progress = Math.max(0, 100 - (elapsedDuration / totalDuration) * 100);
+                } else {
+                    progress = 0; 
+                }
+                
+                if(diff < 0) { 
+                    statusClass = 'expired'; dateInfo = `⚠️ Exp. (${dateFr})`; progress = 0;
+                } else if(diff < 30) { 
+                    statusClass = 'soon'; dateInfo = `🕒 J-${diff} (${dateFr})`;
+                } else { 
+                    dateInfo = `📅 ${dateFr} (J+${diff})`;
+                }
+            }
+
+            li.className = `item-card ${statusClass}`;
+            
+            const recipeLink = `https://www.marmiton.org/recettes/recherche.aspx?aqt=${encodeURIComponent(item.name)}`;
+            
+            let mainActionBtn = '';
+            if (currentView === 'freezer') {
+                mainActionBtn = `<button class="tool-btn btn-shop" onclick="moveToShop(${item.id})" title="Envoyer liste courses">🛒 >List</button>`;
+            } else {
+                mainActionBtn = `<button class="tool-btn btn-shop" onclick="restoreToFreezer(${item.id})" title="Remettre au congélo">❄️ >Congélo</button>`;
+            }
+
+            // Badges
+            const freezerBadge = (currentView === 'freezer' && item.freezer && item.freezer !== '?') 
+                ? `<span class="badge freezer-badge">${item.freezer}</span>` : '';
+
+            const drawerBadge = (currentView === 'freezer' && item.drawer && item.drawer !== '?') 
+                ? `<span class="badge drawer-badge">Tir. ${item.drawer}</span>` : '';
+
+            // Rendu simplifié pour le mode lecture
+            if (readModeActive) {
+                li.innerHTML = `
+                    <div class="item-left">
+                        <div class="category-icon">${icons[item.category] || '🧊'}</div>
+                        <div class="item-info">
+                            <h3>${item.name}</h3>
+                            <div class="meta-info">
+                                ${freezerBadge} ${drawerBadge}
+                            </div>
+                        </div>
+                    </div>
+                    <span class="qty-display">${item.qty}</span>
+                `;
+            } else {
+                // Rendu détaillé (mode normal)
+                li.innerHTML = `
+                    <div class="item-left">
+                        <div class="category-icon">${icons[item.category] || '🧊'}</div>
+                        <div class="item-info">
+                            <h3>${item.name}</h3>
+                            <div class="meta-info">
+                                ${freezerBadge} ${drawerBadge}
+                                <span class="date-text">${dateInfo}</span>
+                            </div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%;"></div></div>
+                            <div class="card-tools">
+                                <button class="tool-btn btn-edit" onclick="startEdit(${item.id})">✏️ Éditer</button>
+                                <a href="${recipeLink}" target="_blank" class="tool-btn">👨‍🍳 Recette</a>
+                                ${mainActionBtn}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="actions-right">
+                        <div class="qty-controls">
+                            <button class="qty-btn btn-minus" onclick="updateQty(${item.id}, -1)">-</button>
+                            <span class="qty-display">${item.qty}</span>
+                            <button class="qty-btn btn-plus" onclick="updateQty(${item.id}, 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            listEl.appendChild(li);
+        });
+    }
+
+    // --- Fonctions Système (Impression & Backup) ---
+    function printInventory() { window.print(); }
+
     function exportData() {
-        const dataStr = JSON.stringify(inventory);
+        const data = { 
+            inventory: inventory, 
+            shoppingList: shoppingList, 
+            historyStack: historyStack,
+            version: 13 
+        };
+        const dataStr = JSON.stringify(data);
         const link = document.createElement('a');
         link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        link.download = `congelo_v12_backup_${new Date().toISOString().slice(0,10)}.json`;
+        link.download = `congelo_backup_V13_${new Date().toISOString().slice(0,10)}.json`;
         link.click();
     }
 
@@ -412,128 +1150,45 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                const importedData = JSON.parse(e.target.result);
-                if(confirm(`Remplacer la liste actuelle (${inventory.length} items) par la sauvegarde (${importedData.length} items) ?`)) {
-                    // Assure la compatibilité avec le champ 'freezer' si la sauvegarde est ancienne
-                    inventory = importedData.map(item => ({
-                         ...item,
-                         freezer: item.freezer || 'C1' 
-                    }));
+                const data = JSON.parse(e.target.result);
+                let importedInventory = Array.isArray(data) ? data : (data.inventory || []);
+                let importedShopping = Array.isArray(data) ? [] : (data.shoppingList || []);
+                let importedHistory = Array.isArray(data) ? [] : (data.historyStack || []);
+                
+                if(confirm(`Remplacer les données actuelles par la sauvegarde ? (${importedInventory.length} articles)`)) {
+                    inventory = importedInventory;
+                    shoppingList = importedShopping;
+                    historyStack = importedHistory;
                     save();
-                    alert("Données restaurées avec succès !");
+                    alert("Données restaurées !");
                 }
-            } catch(err) {
-                alert("Erreur : Fichier invalide.");
-            }
+
+            } catch(err) { alert("Fichier de sauvegarde invalide."); }
         };
         reader.readAsText(file);
-        input.value = '';
     }
-
-    function getRecipeUrl(term) {
-        return `https://www.marmiton.org/recettes/recherche.aspx?aqt=${encodeURIComponent(term)}`;
-    }
-
-    // --- Rendu ---
-    function renderList() {
-        listElement.innerHTML = '';
-        const searchVal = document.getElementById('searchInput').value.toLowerCase();
-        const catFilter = document.getElementById('filterCategory').value;
-        const drawFilter = document.getElementById('filterDrawer').value;
-        const freezerFilter = document.getElementById('filterFreezer').value; // NOUVEAU: Filtre Appareil
+    
+    // --- Initialisation au chargement ---
+    window.onload = function() {
+        setDefaultDate();
+        switchView(currentView); 
+        showHistoryBar();
         
-        const filtered = inventory.filter(item => {
-            const matchSearch = item.name.toLowerCase().includes(searchVal);
-            const matchCat = (catFilter === 'all' || item.category === catFilter);
-            
-            // FILTRE APPAREIL
-            const itemFreezer = item.freezer || 'C1'; 
-            const matchFreezer = (freezerFilter === 'all' || itemFreezer === freezerFilter);
-
-            // FILTRE TIROIR
-            const itemDrawer = item.drawer ? item.drawer.toString() : '?';
-            const matchDrawer = (drawFilter === 'all' || itemDrawer === drawFilter);
-            
-            return matchSearch && matchCat && matchFreezer && matchDrawer;
-        });
-        
-        filtered.sort((a, b) => {
-            // Tri 1: par appareil (C1, C2, C3)
-            const freezerA = a.freezer || 'C1';
-            const freezerB = b.freezer || 'C1';
-            if (freezerA !== freezerB) {
-                return freezerA.localeCompare(freezerB);
+        document.addEventListener('click', (e) => {
+            if (document.getElementById('autocompleteList') && !document.getElementById('itemNameContainer').contains(e.target)) {
+                document.getElementById('autocompleteList').innerHTML = '';
             }
-            
-            // Tri 2: par date de péremption
-            if (!a.date) return 1;
-            if (!b.date) return -1;
-            return new Date(a.date) - new Date(b.date);
         });
-
-        if (filtered.length === 0) {
-            listElement.innerHTML = '<div style="text-align:center; padding:20px; color:#999">Rien trouvé 🕸️</div>';
-            return;
-        }
-
-        filtered.forEach(item => {
-            const li = document.createElement('li');
-            
-            let dateInfo = '';
-            let statusClass = 'fresh';
-            if(item.date) {
-                const diff = Math.ceil((new Date(item.date) - new Date()) / (86400000));
-                const dateFr = new Date(item.date).toLocaleDateString('fr-FR', {day:'numeric', month:'short'});
-                if(diff < 0) { statusClass = 'expired'; dateInfo = `⚠️ ${dateFr}`; }
-                else if(diff < 30) { statusClass = 'soon'; dateInfo = `🕒 ${dateFr}`; }
-                else { dateInfo = `📅 ${dateFr}`; }
-            }
-
-            // NOUVEAU: Badge Appareil
-            const freezerBadge = item.freezer 
-                ? `<span class="badge freezer-badge">${item.freezer}</span>` 
-                : '';
-                
-            const drawerBadge = item.drawer && item.drawer !== '?' 
-                ? `<span class="badge drawer-badge">Tir. ${item.drawer}</span>` 
-                : '';
-
-            li.className = `item-card ${statusClass}`;
-            
-            const recipeLink = getRecipeUrl(item.name);
-
-            li.innerHTML = `
-                <div class="item-left">
-                    <div class="category-icon">${icons[item.category] || '🧊'}</div>
-                    <div class="item-info">
-                        <h3>${item.name}</h3>
-                        <div class="meta-info">
-                            ${freezerBadge} ${drawerBadge} <span class="date-text">${dateInfo}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="actions-right">
-                    <div class="qty-controls">
-                        <button class="qty-btn btn-minus" onclick="updateQty(${item.id}, -1)">-</button>
-                        <span class="qty-display">${item.qty}</span>
-                        <button class="qty-btn btn-plus" onclick="updateQty(${item.id}, 1)">+</button>
-                    </div>
-                    <a href="${recipeLink}" target="_blank" class="recipe-btn">
-                        👨‍🍳 Idée
-                    </a>
-                </div>
-            `;
-            listElement.appendChild(li);
-        });
-    }
+    };
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
+            // Note: sw.js est nécessaire pour que l'application soit installable (PWA)
             navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW fail', err));
         });
     }
 
+    renderStats();
     renderList();
 </script>
 </body>
