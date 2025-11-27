@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Congélo V14 (Tableau) 🎤📦</title>
+    <title>Mon Congélo V15 (Impression Table)</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0288d1">
@@ -166,7 +166,7 @@
         .autocomplete-item:hover, .autocomplete-item.active { background-color: var(--bg); }
 
 
-        /* --- TABLEAU LISTE (NOUVEAU) --- */
+        /* --- TABLEAU LISTE --- */
         #list-container {
             overflow-x: auto; /* Permet le défilement horizontal sur mobile */
             padding-top: 5px;
@@ -275,6 +275,78 @@
             border-radius: 8px; font-weight: bold; cursor: pointer;
         }
         #history-message { font-size: 0.9rem; }
+        
+        /* --- STYLES D'IMPRESSION (NOUVEAU) --- */
+        @media print {
+            /* Force l'apparence pour l'impression */
+            body {
+                background-color: #fff !important; 
+                color: #000 !important;
+                padding: 0;
+                margin: 0;
+            }
+            
+            .container {
+                max-width: none !important; 
+                margin: 0;
+            }
+
+            /* Éléments à cacher dans l'impression */
+            header, 
+            .view-toggle, 
+            .tools-area, 
+            .add-form, 
+            #history-bar,
+            .qty-btn, /* Cache les boutons +/- */
+            .table-actions .tool-btn, /* Cache les boutons Recette, Éditer, Envoyer */
+            div[style*="text-align:center; margin-top:30px"] /* Cache les liens Sauvegarder/Restaurer */
+             {
+                display: none !important;
+            }
+            
+            /* Sauf le bouton Imprimer (à cacher via JS pour les puristes, mais on peut le cacher en CSS) */
+            #printBtn {
+                display: none !important;
+            }
+
+            /* Assurer que le conteneur de la liste et le tableau sont visibles et bien formatés */
+            #list-container {
+                padding: 10px; /* Ajoute un peu d'espace autour du tableau */
+                margin: 0;
+                overflow-x: visible; /* Ne pas défiler, utiliser toute la largeur */
+            }
+
+            #inventory-table {
+                min-width: 100%;
+                box-shadow: none;
+                border: 1px solid #000; /* Ajoute une bordure extérieure pour la table */
+                font-size: 10pt;
+            }
+            
+            #inventory-table th, #inventory-table td {
+                padding: 5px;
+                border-bottom: 1px solid #ddd;
+                border-right: 1px solid #ddd;
+                white-space: normal; /* Permet aux noms de s'enrouler */
+            }
+            
+            #inventory-table th {
+                background-color: #eee;
+                color: #000;
+            }
+            
+            /* Retirer les couleurs des badges pour l'impression */
+            .date-status-badge {
+                color: #000 !important;
+                background-color: transparent !important;
+                border: 1px solid #ccc;
+            }
+
+            /* S'assurer que la colonne quantité est lisible */
+             .table-qty-display {
+                font-size: 1rem !important;
+            }
+        }
     </style>
 </head>
 <body id="body">
@@ -1119,19 +1191,22 @@
     }
 
     // --- Fonctions Système (Impression & Backup) ---
-    function printInventory() { window.print(); }
+    function printInventory() { 
+        // L'action window.print() utilise automatiquement les styles @media print définis en CSS
+        window.print(); 
+    }
 
     function exportData() {
         const data = { 
             inventory: inventory, 
             shoppingList: shoppingList, 
             historyStack: historyStack,
-            version: 14 
+            version: 15 
         };
         const dataStr = JSON.stringify(data);
         const link = document.createElement('a');
         link.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        link.download = `congelo_backup_V14_${new Date().toISOString().slice(0,10)}.json`;
+        link.download = `congelo_backup_V15_${new Date().toISOString().slice(0,10)}.json`;
         link.click();
     }
 
