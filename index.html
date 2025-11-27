@@ -106,10 +106,10 @@
         input, select {
             padding: 10px; border: 1px solid var(--border); border-radius: 8px;
             flex: 1; font-size: 16px; background: var(--bg); color: var(--text);
-            box-sizing: border-box; /* IMPORTANT pour le padding */
+            box-sizing: border-box; 
         }
         
-        #itemName { position: relative; } /* Pour l'autocomplétion */
+        #itemName { position: relative; } 
 
         .input-mini { flex: 0 0 60px; min-width: 50px; }
         
@@ -139,7 +139,7 @@
             background-color: var(--card-bg); border: 1px solid var(--border);
             border-top: none; z-index: 10; border-radius: 0 0 8px 8px;
             max-height: 200px; overflow-y: auto; box-shadow: var(--shadow);
-            margin-top: -1px; /* Overlap border */
+            margin-top: -1px; 
         }
         .autocomplete-item {
             padding: 10px; cursor: pointer; border-bottom: 1px solid var(--border);
@@ -219,6 +219,58 @@
             border-radius: 8px; font-weight: bold; cursor: pointer;
         }
         #history-message { font-size: 0.9rem; }
+        
+        /* --- RÈGLES D'IMPRESSION (AJOUTÉES) --- */
+        @media print {
+            /* Cache tous les éléments de l'interface qui ne sont pas la liste */
+            header, 
+            .view-toggle, 
+            .tools-area, 
+            .add-form, 
+            #history-bar, 
+            .card-tools, 
+            .actions-right,
+            .qty-controls {
+                display: none !important;
+            }
+            
+            body {
+                background: white; 
+                padding: 0; 
+                margin: 0; 
+                color: black; 
+            }
+            
+            .container { max-width: none; }
+            
+            /* Afficher la liste propre pour l'impression */
+            #inventory-list {
+                display: block;
+                width: 100%;
+                font-size: 12pt;
+            }
+            
+            /* Nettoyer les cartes pour l'impression (supprimer les ombres, afficher les bordures) */
+            .item-card {
+                border: 1px solid #ccc; 
+                border-left: 5px solid var(--primary); /* Conserver la couleur principale */
+                padding: 8px;
+                box-shadow: none;
+                break-inside: avoid; /* Empêche un élément de se couper sur deux pages */
+                margin-bottom: 5px;
+            }
+            
+            /* Ajuster l'affichage pour l'impression */
+            .item-left {
+                gap: 5px;
+            }
+            .category-icon {
+                background: none; /* Ne pas gaspiller d'encre */
+                font-size: 1.2rem;
+                width: 30px; height: 30px;
+            }
+        }
+        /* FIN DU BLOC @media print */
     </style>
 </head>
 <body>
@@ -273,6 +325,8 @@
             </select>
             
             <button id="filterAlert" class="filter-btn" onclick="toggleAlertFilter()">🚨 Alerte</button>
+            
+            <button id="printBtn" class="filter-btn" onclick="printInventory()">🖨️ Imprimer</button>
         </div>
     </div>
 
@@ -323,7 +377,7 @@
     // --- Initialisation des Données ---
     let inventory = JSON.parse(localStorage.getItem('freezerData')) || []; 
     let shoppingList = JSON.parse(localStorage.getItem('shoppingData')) || [];
-    let historyStack = JSON.parse(localStorage.getItem('historyData')) || []; // Nouveau
+    let historyStack = JSON.parse(localStorage.getItem('historyData')) || []; 
     
     let currentView = localStorage.getItem('currentView') || 'freezer';
     let editingId = null;
@@ -717,7 +771,6 @@
             const recipeLink = `https://www.marmiton.org/recettes/recherche.aspx?aqt=${encodeURIComponent(item.name)}`;
             
             // Boutons d'action spécifiques
-            let actionBtn = '';
             let mainActionBtn = '';
             if (currentView === 'freezer') {
                 mainActionBtn = `<button class="tool-btn btn-shop" onclick="moveToShop(${item.id})" title="Envoyer liste courses">🛒 >List</button>`;
@@ -758,7 +811,11 @@
         });
     }
 
-    // --- Fonctions Système (Backup/PWA) ---
+    // --- Fonctions Système (Impression & Backup) ---
+    function printInventory() {
+        window.print();
+    }
+
     function exportData() {
         const data = { inventory, shoppingList, historyStack };
         const dataStr = JSON.stringify(data);
